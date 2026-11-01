@@ -1,0 +1,205 @@
+/* shape-belt: this game's own rules. Tokens by name only; every class starts with belt-. */
+
+/*
+ * The play area is a size container: the monsters share what the prompt and
+ * the belt leave, and a shape's size comes from the space (100cqw, 100cqh).
+ * `overflow: clip` hides shapes coming on at the left and riding off at the
+ * right, and (unlike `hidden`) never scrolls.
+ */
+.belt {
+  container-type: size;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 2cqh, 1rem);
+  overflow: clip;
+  --belt-size: clamp(4.25rem, min(17cqw, 13cqh), 6.5rem);
+  --belt-cols: 3;
+  --belt-rows: 1;
+}
+
+/* A phone: four monsters two by two, five as three over two (each spans two of six columns). */
+.belt[data-count="4"] { --belt-cols: 2; --belt-rows: 2; --belt-wide: 4; }
+.belt[data-count="5"] { --belt-cols: 6; --belt-rows: 2; --belt-wide: 5; }
+.belt[data-count="3"] { --belt-wide: 3; }
+.belt[data-count="5"] .belt-monster { grid-column: span 2; }
+.belt[data-count="5"] .belt-monster:nth-child(4) { grid-column: 2 / span 2; }
+
+@container (min-width: 34rem) {
+  .belt-monsters {
+    --belt-cols: var(--belt-wide);
+    --belt-rows: 1;
+  }
+
+  .belt[data-count="5"] .belt-monster,
+  .belt[data-count="5"] .belt-monster:nth-child(4) {
+    grid-column: auto;
+  }
+}
+
+.belt-monsters {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--belt-cols), minmax(0, 1fr));
+  /* The monsters stand just above the belt, so a drag up to them is short. */
+  align-content: end;
+  gap: 0.75rem;
+  padding: 0.4rem 0.5rem 0;
+}
+
+.belt-monster {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  border-radius: var(--radius);
+}
+
+.belt-creature {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* As wide as its column, but never taller than its share of the room the prompt and the belt leave. */
+  max-height: min(19rem, calc((100cqh - 16rem) / var(--belt-rows)));
+  overflow: visible;
+}
+
+.belt-body {
+  fill: var(--mark);
+  stroke: color-mix(in oklch, var(--mark) 60%, var(--foreground));
+  stroke-width: 3;
+}
+
+.belt-ear,
+.belt-foot {
+  fill: color-mix(in oklch, var(--mark) 68%, var(--foreground));
+}
+
+.belt-eye {
+  fill: var(--card);
+  stroke: var(--foreground);
+  stroke-width: 2;
+}
+
+.belt-pupil {
+  fill: var(--foreground);
+  transition: translate 0.2s ease;
+}
+
+.belt-art-lip {
+  fill: var(--foreground);
+  stroke: var(--card);
+  stroke-width: 7;
+  stroke-linejoin: round;
+}
+
+.belt-jaw {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.belt-monster[data-chomp] .belt-creature { animation: tl-bounce 0.5s ease; }
+.belt-monster[data-chomp] .belt-jaw { animation: belt-chomp 0.45s ease 2; }
+.belt-monster[data-shake] .belt-creature { animation: tl-shake 0.4s ease; }
+.belt-monster[data-shake] .belt-pupil { translate: 0 3px; }
+
+/* The belt: stripes that the animation loop slides along (background-position), rails above and below. */
+.belt-track {
+  position: relative;
+  flex: none;
+  height: calc(var(--belt-size) + 1rem);
+  background-color: color-mix(in oklch, var(--foreground) 12%, var(--muted));
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--foreground) 24%, var(--muted)) 0 8px,
+    color-mix(in oklch, var(--foreground) 12%, var(--muted)) 8px 40px
+  );
+  border-block: 5px solid color-mix(in oklch, var(--foreground) 42%, var(--muted));
+  border-radius: var(--radius);
+  touch-action: none;
+}
+
+.belt-item {
+  position: absolute;
+  left: 0;
+  top: calc(0.5rem - 5px);
+  width: var(--belt-size);
+  height: var(--belt-size);
+  will-change: transform;
+}
+
+/* A held or picked shape stays above the shapes riding past it. */
+.belt-item:has(> [data-selected]),
+.belt-item:has(> [data-held]) {
+  z-index: 3;
+}
+
+.belt-shape {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+}
+
+.belt-shape[data-selected] {
+  translate: 0 -0.4rem;
+  scale: 1.08;
+}
+
+.belt-shape[data-held] {
+  scale: 1.1;
+}
+
+.belt-shape .belt-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.belt-art-fill {
+  fill: var(--mark);
+  stroke: color-mix(in oklch, var(--mark) 62%, var(--foreground));
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.belt-banner {
+  position: absolute;
+  left: 50%;
+  top: 20%;
+  translate: -50% 0;
+  z-index: 30;
+  margin: 0;
+  padding: 0.4rem 1.5rem;
+  white-space: nowrap;
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 3px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: clamp(1.6rem, 6cqw, 2.6rem);
+  pointer-events: none;
+  animation: tl-pop 0.35s ease;
+}
+
+@keyframes belt-chomp {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .belt-creature,
+  .belt-jaw,
+  .belt-banner {
+    animation: none !important;
+  }
+
+  .belt-pupil {
+    transition: none;
+  }
+}

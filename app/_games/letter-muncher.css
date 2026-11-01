@@ -1,0 +1,196 @@
+/* letter-muncher: this game's own rules. Tokens by name only; every class starts with lm-. */
+
+.lm {
+  --lm-skin: var(--chart-3);
+  --lm-dark: color-mix(in oklch, var(--chart-3) 65%, var(--foreground));
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.lm-scene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  min-height: 0;
+}
+
+/* The monster is the drop target: a finger may let go anywhere on it. */
+.lm-monster {
+  flex: none;
+  width: clamp(8.5rem, 34vh, 18rem);
+  max-width: 54vw;
+  border-radius: var(--radius);
+  touch-action: none;
+}
+
+.lm-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  transform-origin: 50% 90%;
+}
+
+.lm-stalk,
+.lm-arm {
+  fill: none;
+  stroke: var(--lm-dark);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.lm-arm { stroke: var(--lm-skin); stroke-width: 12; }
+.lm-bobble { fill: var(--chart-1); }
+.lm-foot { fill: var(--lm-dark); }
+.lm-body { fill: var(--lm-skin); }
+.lm-spot { fill: color-mix(in oklch, var(--chart-3) 45%, var(--card)); }
+.lm-eye { fill: var(--card); stroke: var(--foreground); stroke-width: 3; }
+.lm-pupil { fill: var(--foreground); transition: transform 0.2s ease; }
+.lm-shine { fill: var(--card); }
+.lm-lid { fill: var(--lm-skin); opacity: 0; }
+.lm-mouth-inside { fill: var(--foreground); }
+.lm-tongue { fill: var(--chart-1); }
+.lm-tooth { fill: var(--card); }
+
+.lm-eye-happy {
+  fill: none;
+  stroke: var(--foreground);
+  stroke-width: 7;
+  stroke-linecap: round;
+  opacity: 0;
+}
+
+.lm-mouth {
+  transform-box: fill-box;
+  transform-origin: center top;
+  transition: transform 0.15s ease;
+}
+
+/* A tile held over the monster: the mouth opens wider and the eye looks down at it. */
+.lm-monster[data-hover] .lm-mouth { transform: scale(1.12, 1.25); }
+.lm-monster[data-hover] .lm-pupil { transform: translateY(7px); }
+
+/* Chomp: the eye smiles, the mouth chomps, the monster hops. */
+.lm[data-mood="chomp"] .lm-eye-open { opacity: 0; }
+.lm[data-mood="chomp"] .lm-eye-happy { opacity: 1; }
+.lm[data-mood="chomp"] .lm-mouth { animation: lm-chomp 0.3s ease 3; }
+.lm[data-mood="chomp"] .lm-art { animation: lm-hop 0.6s ease 2; }
+
+/* No: the eye half closes and the monster shakes its head. */
+.lm[data-mood="no"] .lm-lid { opacity: 1; }
+.lm[data-mood="no"] .lm-mouth { transform: scale(0.7, 0.45); }
+.lm[data-mood="no"] .lm-art { animation: lm-no 0.6s ease; }
+
+/* The speech bubble with the letter the monster wants. */
+.lm-bubble {
+  position: relative;
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  min-width: 7rem;
+  min-height: 7rem;
+  padding: 0.4rem 1rem;
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 3px solid color-mix(in oklch, var(--chart-3) 45%, var(--border));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: tl-pop 0.35s ease;
+}
+
+.lm-bubble::after {
+  content: "";
+  position: absolute;
+  left: -0.7rem;
+  bottom: 1.4rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  background: var(--card);
+  border-left: 3px solid color-mix(in oklch, var(--chart-3) 45%, var(--border));
+  border-bottom: 3px solid color-mix(in oklch, var(--chart-3) 45%, var(--border));
+  transform: rotate(45deg);
+}
+
+.lm-bubble-letter {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: clamp(3.2rem, 11vh, 5.5rem);
+  line-height: 1.2;
+}
+
+/* The letter tiles: one row. */
+.lm-tray {
+  width: 100%;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.9rem;
+  justify-content: center;
+  grid-template-columns: repeat(var(--lm-count, 3), minmax(4.25rem, 7rem));
+}
+
+.lm-tray[data-count="2"] { --lm-count: 2; }
+.lm-tray[data-count="3"] { --lm-count: 3; }
+.lm-tray[data-count="4"] { --lm-count: 4; }
+
+.lm-tile {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-height: 4.25rem;
+  background: color-mix(in oklch, var(--mark) 16%, var(--card));
+  color: var(--card-foreground);
+  border: 3px solid var(--mark);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: clamp(2.2rem, 7vh, 3.4rem);
+  line-height: 1;
+  animation: tl-pop 0.35s ease backwards;
+}
+
+.lm-tile:nth-child(2) { animation-delay: 0.05s; }
+.lm-tile:nth-child(3) { animation-delay: 0.1s; }
+.lm-tile:nth-child(4) { animation-delay: 0.15s; }
+
+/* Eaten: gone from the row (its place stays, so nothing jumps). */
+.lm-tile[data-eaten] { visibility: hidden; }
+
+/* Refused: the letter wobbles while the tile springs home. */
+.lm-tile[data-refused] { border-color: var(--destructive); }
+.lm-tile[data-refused] .lm-tile-letter { display: inline-block; animation: tl-shake 0.4s ease; }
+
+@keyframes lm-chomp {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.12); }
+}
+
+@keyframes lm-hop {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  20% { transform: translateY(0) scale(1.06, 0.92); }
+  50% { transform: translateY(-16px) scale(0.96, 1.05); }
+  80% { transform: translateY(0) scale(1.04, 0.96); }
+}
+
+@keyframes lm-no {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-7deg); }
+  40% { transform: rotate(7deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(4deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lm-art,
+  .lm-mouth,
+  .lm-bubble,
+  .lm-tile,
+  .lm-tile-letter {
+    animation: none !important;
+  }
+}

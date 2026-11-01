@@ -1,0 +1,138 @@
+/*
+ * number-tracing: this game's own rules (nt-), and the rules of the trace board it
+ * shares with Letter tracing (tb-, app/_games/trace-board.jsx): app/games.css takes
+ * one stylesheet a game, so the shared board's rules live here once.
+ * Tokens by name only; the canvas reads its colours from the same tokens at run time.
+ */
+
+.nt {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The trace board (shared). */
+
+.tb {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.tb-prompt .play-prompt-text {
+  font-size: clamp(1.3rem, 4vw, 2rem);
+}
+
+/* As tall as it is wide when there is room, shorter when there is not: the board, the
+   prompt and the tools stay together, and the board is the box's shorter side. */
+.tb-box {
+  flex: 0 1 auto;
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tb-surface {
+  position: relative;
+  flex: none;
+  width: 0;
+  height: 0;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.tb-surface canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tb-ink {
+  touch-action: none;
+  cursor: crosshair;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.tb-surface[data-state="done"] {
+  border-color: var(--chart-3);
+  animation: tl-pop 0.4s ease;
+}
+
+.tb-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.tb-tool {
+  min-height: 3.5rem;
+  min-width: 3.5rem;
+  padding-inline: 1rem;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: 1.05rem;
+}
+
+.tb-tool svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.tb-meter {
+  flex: 1;
+  min-width: 4rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.tb-meter-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--chart-3);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.15s ease;
+}
+
+/* A phone: the tools sit closer to leave the bar room. */
+@media (max-width: 30rem) {
+  .tb-foot {
+    gap: 0.5rem;
+  }
+
+  .tb-tool {
+    padding-inline: 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tb-surface[data-state="done"] {
+    animation: none;
+  }
+
+  .tb-meter-fill {
+    transition: none;
+  }
+}

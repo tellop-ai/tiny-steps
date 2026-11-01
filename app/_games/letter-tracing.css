@@ -1,0 +1,12 @@
+/*
+ * letter-tracing: this game's own rules (lt-). The trace board it shares with
+ * Number tracing keeps its rules (tb-) in number-tracing.css.
+ * Tokens by name only.
+ */
+
+.lt {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}

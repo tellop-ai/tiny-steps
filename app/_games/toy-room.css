@@ -1,0 +1,89 @@
+/* toy-room: this game's own rules. Tokens by name only; every class starts with ty-. */
+
+.ty {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 2vh, 1rem);
+}
+
+/*
+ * The stage holds the 3D canvas and, over it, one tap target per toy. The
+ * scene moves each target through --ty-x, --ty-y and --ty-size every frame.
+ * Dragging anywhere on the stage turns the rug, so the browser must not scroll.
+ */
+.ty-stage {
+  position: relative;
+  flex: 1;
+  min-height: 14rem;
+  overflow: hidden;
+  border-radius: calc(var(--radius) * 1.5);
+  border: 3px solid color-mix(in oklch, var(--secondary) 60%, var(--border));
+  background: var(--background);
+  box-shadow: var(--shadow);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+.ty-stage[data-turning] {
+  cursor: grabbing;
+}
+
+.ty-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ty-spot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--ty-size, 3.5rem);
+  height: var(--ty-size, 3.5rem);
+  transform: translate(var(--ty-x, 0px), var(--ty-y, 0px));
+  border-radius: 50%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ty-stage[data-turning] .ty-spot {
+  cursor: grabbing;
+}
+
+.ty-spot[data-state="wrong"],
+.ty-spot[data-state="right"] {
+  cursor: default;
+}
+
+.ty-spot:focus-visible {
+  outline: 4px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/*
+ * A target the scene has not placed yet sits in the corner for one frame: it
+ * takes no press and shows no ring there, but it can already take the focus.
+ */
+.ty-spot:not([data-placed]) {
+  pointer-events: none;
+  outline-color: transparent;
+}
+
+.ty-no3d {
+  margin: auto;
+  max-width: 28rem;
+  padding: 1.5rem;
+  border-radius: calc(var(--radius) * 1.5);
+  background: var(--card);
+  color: var(--card-foreground);
+  font-size: 1.25rem;
+  line-height: 1.4;
+  text-align: center;
+  box-shadow: var(--shadow);
+}

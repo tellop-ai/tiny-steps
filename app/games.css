@@ -1,0 +1,20 @@
+/*
+ * Each game's own rules, one file per game under app/_games/, gathered here so
+ * builders never share a file. Colours are tokens by name only (AGENTS.md rule 6).
+ */
+
+@import "./_games/colour-muncher.css";
+@import "./_games/rainbow-maker.css";
+@import "./_games/animal-count.css";
+@import "./_games/number-hunt.css";
+@import "./_games/number-pond.css";
+@import "./_games/hungry-hedgehog.css";
+@import "./_games/dot-to-dot.css";
+@import "./_games/number-tracing.css";
+@import "./_games/little-builder.css";
+@import "./_games/shape-belt.css";
+@import "./_games/shape-box.css";
+@import "./_games/toy-room.css";
+@import "./_games/letter-tracing.css";
+@import "./_games/letter-muncher.css";
+@import "./_games/letter-flowers.css";

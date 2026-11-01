@@ -1,0 +1,70 @@
+// The shape of what this app stores.
+//
+// This file is the agent's editing surface: a change
+// to how the app keeps information is a change *here*, and Tellop's data-change
+// pipeline turns it into a reviewed, rehearsed step in `prisma/migrations/`.
+// Nothing edits those step files by hand - they are what has already been applied.
+//
+// The stored names are the ones this template has always used (`people`, `notes`,
+// `owner_id`, ...), kept through `@map`/`@@map` rather than renamed, so an app
+// created before this change reads its own saved information unchanged.
+//
+// There is deliberately no `url` here. Version 7 takes the location from the
+// config file beside it, and Tellop supplies that location per operation rather
+// than trusting whatever a project file happens to say.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../lib/data/generated"
+  moduleFormat = "esm"
+  runtime      = "nodejs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Person {
+  id       String  @id
+  name     String
+  isSample Boolean @default(false) @map("is_sample")
+  notes    Note[]
+
+  @@map("people")
+}
+
+model Note {
+  id        Int    @id @default(autoincrement())
+  ownerId   String @map("owner_id")
+  body      String
+  createdAt String @map("created_at")
+  owner     Person @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, id], map: "notes_by_owner")
+  @@map("notes")
+}
+
+/// The grown-ups' choices for the games: sound effects, speaking, the language
+/// and the challenge. One row per owner; no row means the defaults, and nothing
+/// is saved until a grown-up changes one.
+model PlaySettings {
+  ownerId   String  @id @map("owner_id")
+  soundOn   Boolean @default(true) @map("sound_on")
+  voiceOn   Boolean @default(true) @map("voice_on")
+  language  String  @default("")
+  challenge String  @default("gentle")
+
+  @@map("play_settings")
+}
+
+/// One game's level and favourite star for one owner. No row means Normal and
+/// not a favourite.
+model GameChoice {
+  ownerId   String  @map("owner_id")
+  gameId    String  @map("game_id")
+  level     String  @default("normal")
+  favourite Boolean @default(false)
+
+  @@id([ownerId, gameId])
+  @@map("game_choices")
+}

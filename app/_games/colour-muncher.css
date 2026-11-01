@@ -1,0 +1,71 @@
+/* colour-muncher: this game's own rules. Tokens by name only; every class starts with cm-. */
+
+.cm {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.cm-scene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+.cm-monster {
+  width: clamp(8rem, 26vh, 14rem);
+  height: auto;
+  flex: none;
+}
+
+.cm-body { fill: var(--chart-5); }
+.cm-belly { fill: var(--card); opacity: 0.35; }
+.cm-horn { fill: var(--chart-2); }
+.cm-eye { fill: var(--card); stroke: var(--foreground); stroke-width: 2; }
+.cm-pupil { fill: var(--foreground); transition: transform 0.2s ease; }
+.cm-mouth { fill: var(--foreground); transform-box: fill-box; transform-origin: center; transition: transform 0.15s ease; }
+.cm-tooth { fill: var(--card); }
+
+.cm[data-mood="chomp"] .cm-monster { animation: tl-bounce 0.5s ease; }
+.cm[data-mood="chomp"] .cm-mouth { animation: cm-chomp 0.45s ease 2; }
+.cm[data-mood="no"] .cm-monster { animation: tl-shake 0.4s ease; }
+.cm[data-mood="no"] .cm-pupil { transform: translateY(4px); }
+
+.cm-bubble {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: tl-pop 0.35s ease;
+}
+
+.cm-bubble-word {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: 1.3rem;
+}
+
+@keyframes cm-chomp {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-monster,
+  .cm-mouth,
+  .cm-bubble {
+    animation: none !important;
+  }
+}

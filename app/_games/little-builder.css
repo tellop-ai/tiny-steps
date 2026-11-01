@@ -1,0 +1,104 @@
+/* little-builder: this game's own rules. Tokens by name only; every class starts with lb-. */
+
+.lb {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lb-stage {
+  flex: 1;
+  min-height: 0;
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+
+.lb-board {
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  user-select: none;
+  outline: none;
+}
+
+.lb[data-done] .lb-board {
+  cursor: pointer;
+  animation: tl-bounce 0.6s ease;
+}
+
+.lb-board:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.lb-slot {
+  fill: color-mix(in oklch, var(--muted) 55%, var(--card));
+  stroke: var(--muted-foreground);
+  stroke-width: 0.7;
+  stroke-dasharray: 2.2 1.6;
+  stroke-linejoin: round;
+}
+
+.lb-slot[data-asked] {
+  fill: color-mix(in oklch, var(--primary) 16%, var(--card));
+  stroke: var(--primary);
+  stroke-width: 1.1;
+  animation: lb-blink 1s ease-in-out infinite;
+}
+
+.lb-piece {
+  text-anchor: middle;
+  dominant-baseline: central;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.lb-piece[data-new] {
+  animation: tl-pop 0.4s ease;
+}
+
+.lb-tray {
+  display: grid;
+  grid-template-columns: repeat(var(--lb-count, 3), minmax(0, 6.5rem));
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 5.5rem;
+}
+
+.lb-tray[data-count="0"] { visibility: hidden; }
+.lb-tray[data-count="4"] { --lb-count: 4; }
+.lb-tray[data-count="5"] { --lb-count: 5; }
+
+.lb-choice {
+  min-height: 5rem;
+  padding: 0.4rem;
+}
+
+.lb-face {
+  display: grid;
+  place-items: center;
+}
+
+@keyframes lb-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lb-slot[data-asked],
+  .lb-piece[data-new],
+  .lb[data-done] .lb-board {
+    animation: none !important;
+  }
+}
+
+/* The triangle emoji is drawn small inside its box; show it as big as the other pieces. */
+.lb-face[data-shape="triangle"] .play-glyph {
+  transform: scale(1.3);
+}

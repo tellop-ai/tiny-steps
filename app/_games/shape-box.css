@@ -1,0 +1,144 @@
+/* shape-box: this game's own rules. Tokens by name only; every class starts with sb-. */
+
+/*
+ * The play area is a size container, so the holes and pieces take their size
+ * from the space the frame leaves (100cqw, 100cqh): as many across as the
+ * count asks (fewer on a narrow screen), and two rows of them (box and tray)
+ * always fit under the prompt.
+ */
+.sb {
+  container-type: size;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.5rem, 2.5cqh, 1.25rem);
+  --sb-cols: 3;
+  --sb-rows: 1;
+  --sb-gap: clamp(0.5rem, 1.5cqw, 1rem);
+}
+
+.sb[data-count="4"] { --sb-cols: 2; --sb-rows: 2; }
+.sb[data-count="6"] { --sb-cols: 3; --sb-rows: 2; }
+
+@container (min-width: 34rem) {
+  .sb-box,
+  .sb-tray {
+    --sb-cols: var(--sb-wide-cols);
+    --sb-rows: 1;
+  }
+}
+
+.sb[data-count="3"] { --sb-wide-cols: 3; }
+.sb[data-count="4"] { --sb-wide-cols: 4; }
+.sb[data-count="6"] { --sb-wide-cols: 6; }
+
+.sb-box,
+.sb-tray {
+  /* Width: the columns and their gaps inside the box's own padding. Height: the prompt, two boxes, their gaps. */
+  --sb-size: min(
+    11rem,
+    calc((100cqw - 2.5rem) / var(--sb-cols) - var(--sb-gap)),
+    calc((100cqh - 8.5rem) / (2 * var(--sb-rows)) - var(--sb-gap))
+  );
+  display: grid;
+  grid-template-columns: repeat(var(--sb-cols), var(--sb-size));
+  grid-auto-rows: var(--sb-size);
+  gap: var(--sb-gap);
+  justify-content: center;
+  padding: 0.75rem;
+  flex: none;
+}
+
+.sb-box {
+  background: color-mix(in oklch, var(--chart-4) 22%, var(--card));
+  border: 3px solid color-mix(in oklch, var(--chart-4) 45%, var(--border));
+  border-radius: calc(var(--radius) * 1.5);
+  box-shadow: var(--shadow);
+}
+
+.sb-tray {
+  border-radius: calc(var(--radius) * 1.5);
+  background: color-mix(in oklch, var(--muted) 55%, var(--background));
+}
+
+.sb-hole,
+.sb-slot {
+  position: relative;
+  width: var(--sb-size);
+  height: var(--sb-size);
+  border-radius: var(--radius);
+}
+
+.sb-hole[data-shake] {
+  animation: tl-shake 0.4s ease;
+}
+
+.sb-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sb-hole .sb-art {
+  position: absolute;
+  inset: 0;
+}
+
+.sb-art-rim {
+  fill: color-mix(in oklch, var(--foreground) 48%, var(--muted));
+  stroke: color-mix(in oklch, var(--foreground) 62%, var(--muted));
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.sb-art-floor {
+  fill: color-mix(in oklch, var(--foreground) 26%, var(--muted));
+}
+
+.sb-art-fill {
+  fill: var(--mark, var(--primary));
+  stroke: color-mix(in oklch, var(--mark, var(--primary)) 62%, var(--foreground));
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.sb-placed {
+  animation: tl-pop 0.35s ease;
+}
+
+.sb-piece {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+  outline-offset: 2px;
+}
+
+.sb-piece[data-held] {
+  scale: 1.08;
+}
+
+.sb-piece[data-selected] {
+  scale: 1.08;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-hole,
+  .sb-placed {
+    animation: none !important;
+  }
+
+  .sb-piece[data-held],
+  .sb-piece[data-selected] {
+    scale: none;
+  }
+}
+
+/* The holes sit close together: keep the "drop here" rings from running into each other. */
+.sb-hole[data-ready],
+.sb-hole[data-hover] {
+  outline-offset: 1px;
+}

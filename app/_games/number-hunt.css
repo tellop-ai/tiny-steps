@@ -1,0 +1,149 @@
+/* number-hunt: this game's own rules. Tokens by name only; every class starts with nh-. */
+
+.nh {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/*
+ * The board fills the space under the question. Each track is at most a
+ * tile's size, so the tiles gather in the middle; rows share the height, so
+ * twenty tiles fit a phone without scroll. Narrow screens use half columns so
+ * a short last row sits in the middle; wide screens put five tiles in a row.
+ */
+.nh-board {
+  --nh-cols: 6;
+  --nh-rows: 2;
+  --nh-col: 5.5rem;
+  --nh-row: 10rem;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(var(--nh-cols), minmax(0, var(--nh-col)));
+  grid-template-rows: repeat(var(--nh-rows), minmax(0, var(--nh-row)));
+  justify-content: center;
+  align-content: center;
+  gap: 0.6rem;
+}
+
+.nh-board[data-count="5"] { --nh-rows: 2; --nh-row: 8.5rem; }
+.nh-board[data-count="10"] { --nh-rows: 4; --nh-row: 8.5rem; }
+.nh-board[data-count="20"] { --nh-cols: 4; --nh-rows: 5; --nh-col: 11rem; }
+
+.nh-board:is([data-count="5"], [data-count="10"]) .nh-tile { grid-column: span 2; }
+.nh-board[data-count="5"] .nh-tile:nth-child(4) { grid-column: 2 / span 2; }
+.nh-board[data-count="10"] .nh-tile:nth-child(10) { grid-column: 3 / span 2; }
+
+@media (min-width: 40rem) {
+  .nh-board[data-count="5"] { --nh-cols: 5; --nh-rows: 1; --nh-col: 13rem; --nh-row: 12rem; }
+  .nh-board[data-count="10"] { --nh-cols: 5; --nh-rows: 2; --nh-col: 11rem; --nh-row: 10rem; }
+  .nh-board[data-count="20"] { --nh-cols: 5; --nh-rows: 4; --nh-col: 11rem; }
+
+  .nh-board:is([data-count="5"], [data-count="10"]) .nh-tile,
+  .nh-board[data-count="5"] .nh-tile:nth-child(4),
+  .nh-board[data-count="10"] .nh-tile:nth-child(10) {
+    grid-column: auto;
+  }
+}
+
+.nh-tile {
+  position: relative;
+  container-type: size;
+  width: 100%;
+  height: 100%;
+  min-height: 3.5rem;
+  padding: 0;
+  border-width: 4px;
+  border-style: solid;
+  border-color: var(--mark);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: var(--shadow);
+  touch-action: manipulation;
+  transition: transform 0.12s ease, background-color 0.2s ease;
+}
+
+/* Only a real pointer hovers: a finger's tap leaves no tint behind. */
+@media (hover: hover) {
+  .nh-tile:hover {
+    background: color-mix(in oklch, var(--mark) 10%, var(--card));
+    color: var(--foreground);
+  }
+}
+
+.nh-tile:active {
+  transform: scale(0.96);
+}
+
+.nh-number {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: clamp(1.5rem, min(60cqh, 52cqw), 4.5rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  animation: tl-pop 0.35s ease;
+}
+
+/* A right tile: a bounce and two rings bursting out in its own mark. */
+.nh-tile[data-state="right"] {
+  background: color-mix(in oklch, var(--mark) 18%, var(--card));
+  animation: tl-bounce 0.5s ease;
+}
+
+.nh-tile[data-state="right"]::before,
+.nh-tile[data-state="right"]::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 4px solid var(--mark);
+  border-radius: var(--radius);
+  pointer-events: none;
+  animation: nh-burst 0.6s ease-out both;
+}
+
+.nh-tile[data-state="right"]::after {
+  animation-delay: 0.14s;
+}
+
+/* A wrong tile shakes and stays pressable: it may be the next number asked for. */
+.nh-tile[data-state="wrong"] {
+  border-color: var(--destructive);
+  background: color-mix(in oklch, var(--destructive) 14%, var(--card));
+  animation: tl-shake 0.4s ease;
+}
+
+/* After eight seconds the wanted tile glows softly until it is found. */
+.nh-tile[data-hint] {
+  outline: 0 solid var(--accent);
+  animation: nh-glow 1.6s ease-in-out infinite;
+}
+
+@keyframes nh-burst {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+@keyframes nh-glow {
+  0%, 100% { background-color: var(--card); outline-width: 0; }
+  50% { background-color: var(--accent); outline-width: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nh-tile,
+  .nh-number,
+  .nh-tile::before,
+  .nh-tile::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .nh-tile[data-hint] {
+    background: var(--accent);
+    outline-width: 4px;
+  }
+}

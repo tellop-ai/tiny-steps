@@ -1,0 +1,231 @@
+/* letter-flowers: this game's own rules. Tokens by name only; every class starts with lf-. */
+
+/* A laptop: the garden on the left, the letter and the tiles on the right. */
+.lf {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 68rem;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr);
+  grid-template-areas:
+    "garden ."
+    "garden ask"
+    "garden tiles"
+    "garden .";
+  gap: 0 1.5rem;
+}
+
+.lf-ask { margin-bottom: 1.25rem; }
+
+.lf-garden {
+  grid-area: garden;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: color-mix(in oklch, var(--chart-4) 8%, var(--card));
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.lf-flower {
+  position: absolute;
+  inset: 0.5rem 0.5rem 0;
+  width: calc(100% - 1rem);
+  height: calc(100% - 0.5rem);
+}
+
+.lf-ground { fill: color-mix(in oklch, var(--chart-3) 32%, var(--card)); }
+.lf-grass {
+  fill: none;
+  stroke: color-mix(in oklch, var(--chart-3) 70%, var(--card));
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.lf-stem {
+  fill: none;
+  stroke: color-mix(in oklch, var(--chart-3) 85%, var(--foreground));
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.lf-leaf { fill: var(--chart-3); }
+.lf-petal {
+  fill: var(--mark);
+  stroke: color-mix(in oklch, var(--mark) 70%, var(--foreground));
+  stroke-width: 1.5;
+}
+.lf-petal:nth-child(even) { fill: color-mix(in oklch, var(--mark) 70%, var(--card)); }
+.lf-centre {
+  fill: color-mix(in oklch, var(--chart-2) 45%, var(--card));
+  stroke: color-mix(in oklch, var(--chart-2) 60%, var(--foreground));
+  stroke-width: 2;
+}
+.lf-eye { fill: var(--foreground); }
+.lf-mouth {
+  fill: none;
+  stroke: var(--foreground);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* A new stage grows with a pop; a wrong tile makes the whole plant droop for a moment. */
+.lf-bloom {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lf-pop 0.5s ease;
+}
+
+.lf-plant {
+  transform-origin: 100px 262px;
+}
+
+.lf[data-mood="droop"] .lf-plant {
+  animation: lf-droop 0.7s ease;
+}
+
+.lf-ask {
+  grid-area: ask;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.lf-find {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+.lf-wanted {
+  position: relative;
+  width: 8.5rem;
+  height: 8.5rem;
+  padding: 0;
+  border-width: 3px;
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow);
+  animation: tl-pop 0.35s ease;
+}
+
+.lf-wanted-letter {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: 5.5rem;
+  line-height: 1;
+}
+
+.lf-wanted .lf-wanted-sound {
+  position: absolute;
+  right: 0.45rem;
+  bottom: 0.45rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  color: var(--muted-foreground);
+}
+
+.lf-example {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: 1.5rem;
+  line-height: 1.1;
+  animation: tl-fade 0.3s ease;
+}
+
+.lf-example-emoji { font-size: 2.2rem; line-height: 1; }
+
+.lf-example-letter {
+  padding: 0 0.08em;
+  background: color-mix(in oklch, var(--chart-2) 40%, var(--card));
+  border-radius: calc(var(--radius) * 0.4);
+}
+
+.lf-tiles.play-grid {
+  grid-area: tiles;
+  max-width: 36rem;
+  align-content: center;
+}
+
+.lf-tiles.play-grid[data-count="4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.lf-tiles.play-grid:is([data-count="6"], [data-count="9"]) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.lf-tile.play-choice {
+  min-height: 5.5rem;
+}
+
+.lf-tile-letter {
+  font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+  line-height: 1;
+}
+
+/* Nine tiles on a laptop: a little shorter so all three rows sit beside the flower. */
+.lf[data-level="hard"] .lf-tile.play-choice { min-height: 5rem; }
+
+/* A phone (or any narrow window): the garden and the letter side by side on top, the tiles below. */
+@media (max-width: 40rem) {
+  .lf {
+    grid-template-columns: minmax(0, 1fr) 8.5rem;
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "garden ask"
+      "tiles tiles";
+    gap: 0.75rem;
+  }
+
+  .lf-ask { justify-content: center; margin-bottom: 0; }
+
+  .lf-find { font-size: 1rem; }
+
+  .lf-wanted {
+    width: 6.5rem;
+    height: 6.5rem;
+  }
+
+  .lf-wanted-letter { font-size: 4.2rem; }
+
+  .lf-example { font-size: 1.2rem; flex-wrap: wrap; justify-content: center; }
+  .lf-example-emoji { font-size: 1.8rem; }
+
+  .lf-tiles.play-grid { gap: 0.6rem; }
+
+  .lf-tile.play-choice,
+  .lf[data-level="hard"] .lf-tile.play-choice {
+    min-height: 4.75rem;
+  }
+
+  .lf-tile-letter { font-size: 2.3rem; }
+}
+
+@keyframes lf-pop {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+@keyframes lf-droop {
+  0%, 100% { transform: rotate(0deg); }
+  35% { transform: rotate(-9deg); }
+  70% { transform: rotate(-6deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lf-bloom,
+  .lf-plant,
+  .lf-wanted,
+  .lf-example {
+    animation: none !important;
+  }
+}

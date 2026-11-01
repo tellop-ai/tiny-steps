@@ -1,0 +1,18 @@
+/*
+ * How this app is set: the computer's own rounded face for headings and words,
+ * so nothing is fetched and every letter of both languages is there (Turkish
+ * İ, ı, ğ, ş included). A slightly larger reading size than the kit's, because
+ * the words are read aloud to small children and pressed by small fingers.
+ *
+ * Whole-file: Tellop replaces this file whole when the person picks another
+ * look. Kept apart from `tokens.css` on purpose: that file is the named colour
+ * and shape contract, and this one is the typography.
+ */
+
+:root {
+  --reading: 18px;
+  --font-display: ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* The weight headings ask for: a system face has a real bold. Headings use it - see globals.css. */
+  --display-weight: 700;
+  --font-body: ui-rounded, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}

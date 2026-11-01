@@ -1,0 +1,183 @@
+/* number-pond: this game's own rules. Tokens by name only; every class starts with np-. */
+
+.np {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/*
+ * The pond: water in the numbers' blue, with one lane for each fish marked by a
+ * faint line. Fish leave and come back at its sides.
+ */
+.np-pond {
+  --np-lanes: 6;
+  --np-water: color-mix(in oklch, var(--chart-4) 20%, var(--card));
+  --np-line: color-mix(in oklch, var(--chart-4) 30%, var(--card));
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  container-type: size;
+  overflow: clip;
+  background-color: var(--np-water);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--np-water) 0,
+    var(--np-water) calc(100% / var(--np-lanes) - 2px),
+    var(--np-line) calc(100% / var(--np-lanes) - 2px),
+    var(--np-line) calc(100% / var(--np-lanes))
+  );
+  border: 3px solid color-mix(in oklch, var(--chart-4) 45%, var(--card));
+  border-radius: calc(var(--radius) * 1.25);
+}
+
+.np-pond[data-count="4"] { --np-lanes: 4; }
+.np-pond[data-count="6"] { --np-lanes: 6; }
+.np-pond[data-count="8"] { --np-lanes: 8; }
+
+/*
+ * A fish: most of its lane's height, in the middle of its lane, placed across the pond by the game's loop through `transform`. Its
+ * body is drawn in its own mark; its number sits on a light badge in ink.
+ */
+.np-fish {
+  --np-lane: 0;
+  --np-lane-h: calc(100cqh / var(--np-lanes));
+  /* Most of the lane, at most 7.5rem, and never wider than about two fifths of the pond. */
+  --np-fish-h: min(calc(var(--np-lane-h) * 0.84), 7.5rem, 24cqw);
+  position: absolute;
+  left: 0;
+  top: calc(var(--np-lane-h) * (var(--np-lane) + 0.5) - var(--np-fish-h) / 2);
+  height: var(--np-fish-h);
+  aspect-ratio: 8 / 5;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
+  border-radius: 999px;
+  outline: none;
+}
+
+.np-fish[data-lane="1"] { --np-lane: 1; }
+.np-fish[data-lane="2"] { --np-lane: 2; }
+.np-fish[data-lane="3"] { --np-lane: 3; }
+.np-fish[data-lane="4"] { --np-lane: 4; }
+.np-fish[data-lane="5"] { --np-lane: 5; }
+.np-fish[data-lane="6"] { --np-lane: 6; }
+.np-fish[data-lane="7"] { --np-lane: 7; }
+
+.np-fish:focus-visible .np-shape {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
+.np-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation: tl-pop 0.35s ease;
+}
+
+.np-shape {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.np-fish[data-dir="left"] .np-shape {
+  transform: scaleX(-1);
+}
+
+.np-skin { fill: var(--mark); }
+.np-tail,
+.np-fin { fill: color-mix(in oklch, var(--mark) 70%, var(--foreground)); }
+.np-eye { fill: var(--card); }
+.np-pupil { fill: var(--foreground); }
+.np-mouth { fill: none; stroke: var(--foreground); stroke-width: 3; stroke-linecap: round; }
+.np-badge { fill: var(--card); stroke: color-mix(in oklch, var(--mark) 60%, var(--foreground)); stroke-width: 3; }
+
+.np-number {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: calc(var(--np-fish-h) * 0.4);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--card-foreground);
+  pointer-events: none;
+}
+
+/* A caught fish leaps up and drops back into the water with a splash. */
+.np-fish[data-state="caught"] .np-body {
+  animation: np-leap-right 0.8s ease-out both;
+}
+
+.np-fish[data-state="caught"][data-dir="left"] .np-body {
+  animation-name: np-leap-left;
+}
+
+.np-splash {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  width: 70%;
+  height: 34%;
+  border: 3px solid var(--card);
+  border-radius: 999px;
+  pointer-events: none;
+  animation: np-splash 0.7s ease-out 0.3s both;
+}
+
+/* A wrong fish wiggles, its badge rimmed in the warning colour, and swims on. */
+.np-fish[data-state="wrong"] .np-body {
+  animation: np-wiggle 0.5s ease;
+}
+
+.np-fish[data-state="wrong"] .np-badge {
+  stroke: var(--destructive);
+  stroke-width: 6;
+}
+
+@keyframes np-leap-right {
+  0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+  45% { transform: translateY(-95%) rotate(-25deg) scale(1.15); opacity: 1; }
+  100% { transform: translateY(30%) rotate(40deg) scale(0.6); opacity: 0; }
+}
+
+@keyframes np-leap-left {
+  0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+  45% { transform: translateY(-95%) rotate(25deg) scale(1.15); opacity: 1; }
+  100% { transform: translateY(30%) rotate(-40deg) scale(0.6); opacity: 0; }
+}
+
+@keyframes np-splash {
+  0% { transform: translateX(-50%) scale(0.3); opacity: 0.95; }
+  100% { transform: translateX(-50%) scale(1.5); opacity: 0; }
+}
+
+@keyframes np-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-12deg); }
+  40% { transform: rotate(10deg); }
+  60% { transform: rotate(-8deg); }
+  80% { transform: rotate(5deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .np-body,
+  .np-splash {
+    animation: none !important;
+  }
+
+  .np-fish[data-state="caught"] .np-body {
+    opacity: 0.25;
+  }
+}

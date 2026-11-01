@@ -1,0 +1,123 @@
+/* animal-count: this game's own rules. Tokens by name only; every class starts with ac-. */
+
+.ac {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* The meadow takes the room the question and the answers leave. Animals are placed inside its box. */
+.ac-meadow {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 9rem;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 2px solid color-mix(in oklch, var(--chart-3) 45%, var(--card));
+  background:
+    radial-gradient(ellipse 60% 45% at 18% 108%, color-mix(in oklch, var(--chart-3) 30%, var(--card)) 0 99%, transparent 100%),
+    radial-gradient(ellipse 55% 40% at 85% 112%, color-mix(in oklch, var(--chart-3) 34%, var(--card)) 0 99%, transparent 100%),
+    color-mix(in oklch, var(--chart-3) 18%, var(--card));
+  box-shadow: var(--shadow);
+}
+
+.ac-animal {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--ac-size, 4rem);
+  height: var(--ac-size, 4rem);
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  visibility: hidden;
+  transform: translate(var(--ac-x, 0px), var(--ac-y, 0px));
+}
+
+.ac-animal[data-go] {
+  visibility: visible;
+  transition: transform var(--ac-walk, 900ms) cubic-bezier(0.3, 0.6, 0.4, 1) var(--ac-delay, 0ms);
+}
+
+.ac-animal:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.ac-animal[data-counted] {
+  background: color-mix(in oklch, var(--card) 55%, transparent);
+}
+
+.ac-body {
+  display: block;
+  font-size: calc(var(--ac-size, 4rem) * 0.8);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.ac-animal[data-go] .ac-body {
+  animation: ac-step 0.3s ease-in-out var(--ac-delay, 0ms) 3;
+}
+
+.ac-badge {
+  position: absolute;
+  top: -0.15rem;
+  right: -0.15rem;
+  min-width: 1.9rem;
+  height: 1.9rem;
+  padding: 0 0.35rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: 1.15rem;
+  line-height: 1;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  animation: tl-pop 0.3s ease;
+}
+
+.ac-prompt {
+  flex: none;
+}
+
+/* The answers keep their room while the animals walk in, so the meadow never changes size. */
+.ac-answer-area {
+  flex: none;
+}
+
+.ac-answer-area[data-waiting] {
+  visibility: hidden;
+}
+
+.ac-answers[data-count="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ac-answers[data-count="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.ac-answers .play-choice {
+  min-height: 4.75rem;
+}
+
+@keyframes ac-step {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-9%) rotate(-7deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ac-animal[data-go] {
+    transition: none;
+  }
+
+  .ac-animal[data-go] .ac-body,
+  .ac-badge {
+    animation: none !important;
+  }
+}

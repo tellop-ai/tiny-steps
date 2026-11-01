@@ -1,0 +1,200 @@
+/* hungry-hedgehog: this game's own rules. Tokens by name only; every class starts with hh-. */
+
+.hh {
+  --hh-wood: color-mix(in oklch, var(--chart-2) 60%, var(--foreground));
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.hh-scene {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+/* The hedgehog is the drop target: a finger may let go anywhere on it. */
+.hh-hedgehog {
+  flex: none;
+  width: clamp(9rem, 38vh, 21rem);
+  max-width: 55vw;
+  border-radius: var(--radius);
+  touch-action: none;
+}
+
+.hh-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.hh-spikes-back { fill: color-mix(in oklch, var(--chart-2) 45%, var(--foreground)); }
+.hh-spikes { fill: color-mix(in oklch, var(--chart-2) 70%, var(--foreground)); }
+.hh-ear { fill: color-mix(in oklch, var(--chart-2) 35%, var(--card)); }
+.hh-ear-inside { fill: color-mix(in oklch, var(--chart-1) 30%, var(--card)); }
+.hh-face { fill: color-mix(in oklch, var(--chart-2) 22%, var(--card)); }
+.hh-foot { fill: color-mix(in oklch, var(--chart-2) 40%, var(--card)); }
+.hh-cheek { fill: var(--chart-1); opacity: 0.28; }
+.hh-eye { fill: var(--foreground); }
+.hh-shine { fill: var(--card); }
+.hh-snout { fill: color-mix(in oklch, var(--chart-2) 8%, var(--card)); }
+.hh-nose { fill: var(--foreground); }
+.hh-mouth-inside { fill: var(--foreground); }
+.hh-tongue { fill: var(--chart-1); }
+.hh-spark { fill: var(--chart-4); opacity: 0; transform-box: fill-box; transform-origin: center; }
+.hh-spark:nth-of-type(2n) { fill: var(--chart-1); }
+
+.hh-eyes-happy,
+.hh-brows,
+.hh-frown {
+  fill: none;
+  stroke: var(--foreground);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  opacity: 0;
+}
+
+.hh-mouth {
+  transform-box: fill-box;
+  transform-origin: center top;
+  transition: transform 0.15s ease;
+}
+
+/* A tile held over the hedgehog: the mouth opens wide. */
+.hh-hedgehog[data-hover] .hh-mouth { transform: scale(1.45); }
+
+/* Happy: eyes smile, the mouth chomps, sparkles pop. */
+.hh[data-mood="happy"] .hh-eyes-open { opacity: 0; }
+.hh[data-mood="happy"] .hh-eyes-happy { opacity: 1; }
+.hh[data-mood="happy"] .hh-mouth { animation: hh-chomp 0.3s ease 3; }
+.hh[data-mood="happy"] .hh-spark { animation: hh-spark 0.9s ease both; }
+.hh[data-mood="happy"] .hh-spark:nth-of-type(2) { animation-delay: 0.08s; }
+.hh[data-mood="happy"] .hh-spark:nth-of-type(3) { animation-delay: 0.16s; }
+.hh[data-mood="happy"] .hh-spark:nth-of-type(4) { animation-delay: 0.24s; }
+.hh[data-mood="happy"] .hh-art { animation: tl-bounce 0.5s ease; }
+
+/* Sad: brows down, the mouth closes into a frown. */
+.hh[data-mood="sad"] .hh-brows,
+.hh[data-mood="sad"] .hh-frown { opacity: 1; }
+.hh[data-mood="sad"] .hh-mouth { opacity: 0; }
+.hh[data-mood="sad"] .hh-art { animation: hh-droop 0.5s ease; }
+
+/* The wooden sign with the number the hedgehog wants. */
+.hh-sign {
+  position: relative;
+  margin-bottom: 2.75rem;
+  display: grid;
+  place-items: center;
+  min-width: 5.5rem;
+  padding: 0.35rem 0.9rem;
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 5px solid var(--hh-wood);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: tl-pop 0.35s ease;
+}
+
+.hh-sign::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 0.7rem;
+  height: 2.75rem;
+  margin-left: -0.35rem;
+  background: var(--hh-wood);
+}
+
+.hh-sign-number {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: clamp(2.6rem, 9vh, 4.4rem);
+  line-height: 1;
+}
+
+/* The tray of number tiles. */
+.hh-tray {
+  width: 100%;
+  max-width: 50rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.75rem;
+  justify-content: center;
+  grid-template-columns: repeat(4, minmax(3.75rem, 7rem));
+}
+
+@media (min-width: 40rem) {
+  .hh-tray[data-count="6"] { grid-template-columns: repeat(6, minmax(3.75rem, 7rem)); }
+}
+
+@media (max-width: 39.99rem) {
+  .hh-tray[data-count="6"] { grid-template-columns: repeat(3, minmax(3.75rem, 7rem)); }
+}
+
+.hh-tile {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-height: 3.75rem;
+  background: color-mix(in oklch, var(--mark) 16%, var(--card));
+  color: var(--card-foreground);
+  border: 3px solid var(--mark);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: clamp(1.8rem, min(6.5vh, 10vw), 3.2rem);
+  line-height: 1;
+  animation: tl-pop 0.35s ease backwards;
+}
+
+.hh-tile:nth-child(2) { animation-delay: 0.04s; }
+.hh-tile:nth-child(3) { animation-delay: 0.08s; }
+.hh-tile:nth-child(4) { animation-delay: 0.12s; }
+.hh-tile:nth-child(5) { animation-delay: 0.16s; }
+.hh-tile:nth-child(6) { animation-delay: 0.2s; }
+.hh-tile:nth-child(7) { animation-delay: 0.24s; }
+.hh-tile:nth-child(8) { animation-delay: 0.28s; }
+
+/* Eaten: gone from the tray (its place stays, so nothing jumps). */
+.hh-tile[data-eaten] { visibility: hidden; }
+
+/* Refused: the number wobbles while the tile springs home. */
+.hh-tile[data-refused] { border-color: var(--destructive); }
+.hh-tile[data-refused] .hh-tile-number { display: inline-block; animation: tl-shake 0.4s ease; }
+
+@keyframes hh-chomp {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.15); }
+}
+
+@keyframes hh-spark {
+  0% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+  40% { opacity: 1; transform: scale(1.2) rotate(30deg); }
+  100% { opacity: 0; transform: scale(0.9) rotate(60deg); }
+}
+
+@keyframes hh-droop {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hh-art,
+  .hh-mouth,
+  .hh-spark,
+  .hh-sign,
+  .hh-tile,
+  .hh-tile-number {
+    animation: none !important;
+  }
+
+  .hh[data-mood="happy"] .hh-spark { opacity: 1; }
+}

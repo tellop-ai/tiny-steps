@@ -1,0 +1,1367 @@
+/*
+ * How this app looks.
+ *
+ * The values live next door in `tokens.css` and `fonts.css`, which **Tellop owns and
+ * replaces whole** when the look-and-feel step is approved. Everything here reads them
+ * by name, so a new look is two files changing rather than a search through rules - and
+ * nothing here ever writes a colour, a radius, a shadow or a font family of its own.
+ *
+ * Every name ending in `-foreground` is what is legible *on* the name beside it. Use the
+ * pair; one half of it over some other colour is a pair of colours nobody checked.
+ *
+ * The imports have to be the first statements in the file: CSS puts `@import` before
+ * every rule, and a browser ignores one that comes later. `tokens.css` and `fonts.css`
+ * come first on purpose: they define the names everything below reads.
+ *
+ * ## The component kit reads the same names
+ *
+ * The pieces under `components/` are written in Tailwind's utility names - `bg-primary`,
+ * `text-muted-foreground`, `rounded-lg`. The `@theme` block below is the one place those
+ * names are joined to this app's own: `--color-primary: var(--primary)` and nothing else,
+ * so a piece of the kit is coloured by `tokens.css` exactly like a rule written by hand.
+ * There is no colour, no radius, no shadow and no font family anywhere in this file.
+ *
+ * `kit.css` beside this one is the kit's own sheet, copied in whole from the people who
+ * wrote the pieces - the open/closed states, the fade edges, the shimmer. It travels with
+ * the app so nothing has to be fetched for it, and it names none of this app's colours;
+ * every file it came from is written down in `components/PROVENANCE.json`.
+ *
+ * Two of the thirty-four names are deliberately NOT in that block under their own spelling -
+ * `--shadow` and `--radius` - and the reason is mechanical rather than stylistic. Measured:
+ * adding `--shadow: var(--shadow)` there puts `:root,:host{--shadow:var(--shadow)}` into the
+ * built stylesheet, after `tokens.css`'s real value and therefore winning over it, and a
+ * declaration that refers to itself is one CSS throws away. The shadow would silently stop
+ * existing everywhere. So both are read straight where a rule wants them -
+ * `box-shadow: var(--shadow)`, `border-radius: var(--radius)` - the way `--reading` and
+ * `--font-body` already are.
+ *
+ * That is about the two names themselves, and it is NOT the same as saying the kit's own
+ * `shadow-*` and `rounded-*` classes cannot reach this look. They can, and they do, because
+ * the names in the block are DIFFERENT names: `--shadow-sm` is not `--shadow`, so there is
+ * no self-reference and nothing is thrown away. The four small steps are pointed at this
+ * look's shadow, which is what makes a kit card carry the shadow the look chose without one
+ * line of the piece being edited. Measured in the built stylesheet: `.shadow-md` and every
+ * `shadow-sm` rule come out as `--tw-shadow: var(--shadow)`, where before the same build
+ * gave them a fixed grey of their own. `2xs` and `xs` are pointed the same way although no
+ * piece here uses one yet, so the day one does it inherits the look rather than a stranger's
+ * grey. `shadow-lg`, `shadow-xl` and up are deliberately left as they came:
+ * those are what a dialog or a menu floats on, and how far a thing floats above the page is
+ * about depth rather than about a look's own resting shadow. `shadow-(--shadow)` still works
+ * and still means the same thing; it is now the long way round for the small steps.
+ *
+ * The kit's corner sizes are derived from `--radius` under the `--radius-*` names, which
+ * collide with nothing - `xs` through `4xl`, multiples of the one chosen radius, so every
+ * `rounded-*` class in the kit is this look's corner too. A rule here that wants a smaller
+ * or a rounder corner than `var(--radius)` reads one of those steps by name -
+ * `var(--radius-xs)`, `var(--radius-4xl)` - rather than writing a size of its own, which is
+ * what keeps the sentence above true.
+ */
+
+@import "./tokens.css";
+@import "./fonts.css";
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./kit.css";
+@import "./print.css";
+@import "./games.css";
+
+/*
+ * The dark half is used only when DESIGN.md records an explicit request.
+ * Its switch is pressed by the visitor, never selected by the operating system.
+ */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * The join. Every right-hand side is a name `tokens.css` or `fonts.css` defines, so this
+ * block invents nothing - it only says which utility name reaches which of this app's own.
+ *
+ * The corner sizes are multiples of the one chosen radius rather than a subtraction, so a
+ * look that asked for square corners stays square at every size instead of going negative.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-xs: calc(var(--radius) * 0.4);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --shadow-2xs: var(--shadow);
+  --shadow-xs: var(--shadow);
+  --shadow-sm: var(--shadow);
+  --shadow-md: var(--shadow);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-display);
+}
+
+/*
+ * The starting styles, and why they are inside a layer.
+ *
+ * Everything below is what this app looks like before anybody writes a line of their own:
+ * the page, the headings, the form, the five bands. It sits in `@layer base` so that a
+ * utility class always wins over it - which is the whole reason the component kit works.
+ *
+ * A rule written OUTSIDE a layer beats every layer, so an unlayered `button { ... }` here
+ * would quietly override the kit's own Button on every screen and nothing would report it:
+ * the colours would still be this app's, and the shape, the size and the hover would not be
+ * the kit's. That is the trap this block exists to close.
+ *
+ * So: starting styles go in here. Anything a screen wants differently is a utility class or
+ * a rule of its own, and it wins.
+ *
+ * The first rule is the one default the kit is written against. A border utility with no
+ * colour of its own draws in the current text colour, which is never what a card's divider
+ * means; this is what makes it draw in `--border` instead.
+ */
+@layer base {
+  * {
+    box-sizing: border-box;
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    font-size: var(--reading);
+    line-height: 1.55;
+  }
+
+  /*
+   * The starting page's own shape, and why it is a class rather than `body` and
+   * `main`.
+   *
+   * The narrow centred column below is what the notes demo this template ships
+   * wants. It is NOT what a screen wants, and `body` and `main` are every screen:
+   * a layer rule is beaten only by a utility somebody wrote, and `flex-1` writes
+   * `flex`, not `max-width`, while nothing writes a margin or a padding for you.
+   *
+   * Measured 2026-09-02 on a real project set up from this template, with a real
+   * look emitted into it, at 1280x800. The look step draws a person one full-width
+   * page of their own app - top bar flush to the edge, content filling what is
+   * left. Drawing that same page's markup here, `main` came out 372.8 x 505.6
+   * with `max-width: 640px` and `margin: 0 433.6px` instead of 1280 x 747; and an
+   * ordinary sidebar layout - an `<aside>` beside `<main class="flex flex-1 ...">`
+   * - put `main` at 640px with two 188px gutters of empty page around it, the
+   * whole app floating 48px below the top of the window on `body`'s padding.
+   *
+   * So the shape moved onto the page that wants it. `max-width` is the column
+   * plus its own gutters because everything here is `border-box`, which is what
+   * makes the demo land pixel for pixel where it did before.
+   *
+   * This is the same trap the `button`, `input` and `label` rules below were
+   * narrowed for. It reaches `body`, `main`, `form`, `h1` and `h2` too, and those
+   * five are what a screen is made of, so their shape lives on `.starting-page`
+   * and their colour, face and size stay here where every screen wants them.
+   */
+  .starting-page {
+    margin: 0 auto;
+    max-width: calc(40rem + 2.5rem);
+    padding: 3rem 1.25rem;
+  }
+
+  /*
+   * A heading's FACE is a starting style; its SPACING is the page's business.
+   *
+   * The face, the weight and the size stay here, so a bare `<h1>` on any screen
+   * is set in the look's display family rather than in the browser's own bold.
+   * The margins moved to the starting page for the reason `.starting-page` and
+   * the form rule above give: measured 2026-09-02, the look board draws its page
+   * head as `flex flex-col gap-1` around an `h1` and a line under it, and the
+   * same markup in the app came out 5.6px taller because a bare `h1` rule was
+   * still adding a bottom margin inside a flex column that had already said what
+   * the gap was. `h2`'s was 36px above every one of them.
+   */
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    /* The weight that face was actually shipped at - never the browser's own bold,
+       which it would have to fake for a display face that ships one weight. */
+    font-weight: var(--display-weight);
+    font-size: 1.75rem;
+    letter-spacing: -0.01em;
+  }
+
+  h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: var(--display-weight);
+    font-size: 1.1rem;
+  }
+
+  .starting-page h1 {
+    margin-bottom: 0.35rem;
+  }
+
+  .starting-page h2 {
+    margin: 2.25rem 0 0.75rem;
+  }
+
+  .tagline {
+    margin: 0;
+    color: var(--muted-foreground);
+  }
+
+  .notes {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .notes li {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    color: var(--card-foreground);
+  }
+
+  .notes li + li {
+    margin-top: 0.5rem;
+  }
+
+  .empty {
+    color: var(--muted-foreground);
+  }
+
+  /*
+   * The starting page's form, for the same reason `.starting-page` exists above.
+   * A bottom-aligned wrapping row is what the notes demo wants; it is not what
+   * every form a screen writes wants, and `<form>` is every form. Measured: a
+   * form written `flex flex-col gap-4` still came out `flex-wrap: wrap` and
+   * `align-items: flex-end`, because those two are not what `flex-col` sets.
+   */
+  .starting-page form {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: flex-end;
+  }
+
+  /*
+   * `:not([data-slot])` on these three for the reason the `button` rule below
+   * spells out: a kit piece writes utilities only for what it means to set, so a
+   * base rule reaches straight through for everything else. Measured 2026-09-02
+   * on a page holding one of every kit piece, before the scoping: the kit's own
+   * Input carried this rule's `margin-top` (4px) and its focus rule's outline
+   * width and offset (2px each, drawn by nobody only because the piece says
+   * `outline-none`); the kit's Label was `flex: 1 1 256px` and painted in
+   * `--muted-foreground` where it means to inherit the page's ink.
+   */
+  label:not([data-slot]) {
+    display: block;
+    flex: 1 1 16rem;
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+  }
+
+  input:not([data-slot]) {
+    margin-top: 0.25rem;
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--input);
+    border-radius: var(--radius);
+    background: var(--card);
+    color: var(--foreground);
+    font: inherit;
+  }
+
+  input:not([data-slot]):focus-visible,
+  button:not([data-slot]):not([class*="rounded-"]):not([class*="bg-"]):not([class*="text-"]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  .secondary {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+  }
+
+  .panel {
+    background: var(--popover);
+    color: var(--popover-foreground);
+  }
+
+  .side {
+    background: var(--sidebar);
+    color: var(--sidebar-foreground);
+    border-right: 1px solid var(--sidebar-border);
+  }
+
+  .side .current {
+    background: var(--sidebar-primary);
+    color: var(--sidebar-primary-foreground);
+  }
+
+  .side a:hover {
+    background: var(--sidebar-accent);
+    color: var(--sidebar-accent-foreground);
+  }
+
+  .side a:focus-visible {
+    outline: 2px solid var(--sidebar-ring);
+  }
+
+  .quiet {
+    background: var(--muted);
+  }
+
+  /*
+   * The five bands are MARKS, never words.
+   *
+   * They are held to the floor a shape has to clear against a surface, which is
+   * lower than the floor words have to clear - so painting a caption in one is
+   * asking a colour to do a job it was never checked for. Measured: a band that
+   * cleared its surface as a mark came back at 2.57 against a panel, well under
+   * what words need. Fill with them; label beside them in `--foreground`.
+   */
+  .figure .one { background: var(--chart-1); }
+  .figure .two { background: var(--chart-2); }
+  .figure .three { background: var(--chart-3); }
+  .figure .four { background: var(--chart-4); }
+  .figure .five { background: var(--chart-5); }
+
+  .figure li {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    color: var(--foreground);
+  }
+
+  .figure span {
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: var(--radius-xs);
+  }
+
+  /*
+   * A plain `<button>` that nobody styled. The kit's own Button is the one to reach for -
+   * this is what the browser's grey rectangle becomes until then.
+   *
+   * `:not([data-slot])` is what holds it to that, and it was measured rather than
+   * guessed. The sentence that used to stand here - "a utility class or the kit's
+   * Button beats it from outside this layer" - is true only of a utility somebody
+   * WROTE, and the kit's quieter buttons deliberately write none: `variant="ghost"`
+   * names no background and no colour at all, because it means "take the surface you
+   * are on". So this rule reached straight through and painted every ghost button as a
+   * filled primary one, and an `outline` button - which names a background but no
+   * colour - came out with white words on a white face. The same went for every
+   * `Toggle`. Measured 2026-09-02 on the first page to use them: computed background
+   * `var(--primary)`, computed colour `var(--primary-foreground)`, on buttons whose
+   * class list carried the ghost variant correctly.
+   *
+   * Every piece of the kit marks itself with `data-slot`, so naming that is most of
+   * the fix, and a hand-written button keeps exactly the look it had.
+   *
+   * `data-slot` is not all of it, though, because two buttons in the kit are drawn by
+   * somebody else's code and carry no mark of ours. Measured 2026-09-02 with the first
+   * scoping alone in place: the month arrows on every calendar and date field - drawn
+   * by react-day-picker, styled by our own `buttonVariants({ variant: "ghost" })` -
+   * came out 28x28 filled `var(--primary)` with white marks in them, and the date
+   * field's clear cross came out 32x17.6 filled the same, inside a 16px slot. So the
+   * rule also stands aside for a button that carries any styling of its own: a class
+   * naming a corner, a background or an ink. A button nobody styled has none of those
+   * and keeps every line below; the three narrowings cost it nothing.
+   */
+  button:not([data-slot]):not([class*="rounded-"]):not([class*="bg-"]):not([class*="text-"]) {
+    padding: 0.55rem 1rem;
+    border: 0;
+    border-radius: var(--radius);
+    background: var(--primary);
+    color: var(--primary-foreground);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  button:not([data-slot]):not([class*="rounded-"]):not([class*="bg-"]):not([class*="text-"])[disabled] {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .problem {
+    flex: 1 0 100%;
+    margin: 0;
+    color: var(--destructive);
+    font-size: 0.9rem;
+  }
+
+  .problem strong {
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius);
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+  }
+
+  /*
+   * Calmer motion for people who turn it off.
+   *
+   * Every computer and phone lets a person ask for less movement on screen, and
+   * some people need it: a window that zooms in or a panel that slides across can
+   * make them feel unwell. The kit's windows, menus and pop-ups get their entrance
+   * from `tw-animate-css` (`animate-in`, `zoom-in-95`, `slide-in-from-top-2` and the
+   * rest), which moves them without asking; the side panel and the navigation
+   * menu's panels slide on a transition of their own. Only the shimmer in `kit.css`
+   * answers this question by itself.
+   *
+   * So for those people every entrance and exit keeps its fade and loses its
+   * movement: nothing slides, zooms or turns, and a window still visibly comes and
+   * goes at the moment it always did. The animation keeps running rather than being
+   * switched off, on purpose: a kit window waits for its closing animation to end
+   * before it leaves, and a fade that still ends is what keeps opening and closing
+   * exactly as reliable as before. A fade is not movement; it stays.
+   *
+   * `!important` is how a starting style reaches past a utility, and this is the
+   * only place this file uses it. Inside a layer it counts the other way round: an
+   * important rule in `base` beats even an important utility. That is the point - a
+   * person who asked for stillness asked for it on every screen.
+   *
+   * Two pieces still move: the drawer and the toast. Both are pulled by a finger
+   * and work out their own position as they go, so holding them still is a change
+   * to make in the screen that uses them, not a line here. Spinners and skeletons
+   * are each screen's own choice too: `motion-reduce:animate-none` stops one, as
+   * `loading.jsx` does, and words beside it keep saying what is happening. Never
+   * hide a thing here to stop it moving; stop the movement.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      --tw-enter-translate-x: 0 !important;
+      --tw-enter-translate-y: 0 !important;
+      --tw-enter-scale: 1 !important;
+      --tw-enter-rotate: 0 !important;
+      --tw-exit-translate-x: 0 !important;
+      --tw-exit-translate-y: 0 !important;
+      --tw-exit-scale: 1 !important;
+      --tw-exit-rotate: 0 !important;
+    }
+
+    /*
+     * The side panel and the navigation menu's panels rest where they open and
+     * only start a little to one side. Holding them at rest while they come and go
+     * leaves the fade they already carry.
+     */
+    [data-slot="sheet-content"]:is([data-starting-style], [data-ending-style]),
+    [data-slot="navigation-menu-content"]:is([data-starting-style], [data-ending-style]) {
+      translate: none !important;
+    }
+
+    /*
+     * The navigation menu's pop-up and the autocomplete list zoom on a transition
+     * of their own while they come and go. No kit piece rests at a size other than
+     * its own, so holding every coming and going at its size moves nothing at rest.
+     */
+    :is([data-starting-style], [data-ending-style]) {
+      scale: none !important;
+    }
+  }
+}
+
+
+/* ==========================================================================
+ * Tiny steps: the app's own rules.
+ *
+ * Unlayered on purpose: they come after the kit's layered rules and win over
+ * them, so a game's big buttons and the meter keep their shape. Colours are
+ * tokens by name only. A group's mark (`data-mark="chart-1"` …) sets `--mark`,
+ * and the discs draw the card colour on it: the five marks keep 3.4 to 5.0
+ * against the card, enough for an icon (a shape, not words).
+ * ========================================================================== */
+
+[data-mark="chart-1"] { --mark: var(--chart-1); }
+[data-mark="chart-2"] { --mark: var(--chart-2); }
+[data-mark="chart-3"] { --mark: var(--chart-3); }
+[data-mark="chart-4"] { --mark: var(--chart-4); }
+[data-mark="chart-5"] { --mark: var(--chart-5); }
+
+/* ---------- home ---------- */
+
+.home-page {
+  min-height: 100dvh;
+  /* The sun may reach past the page's right edge; it never makes the page scroll sideways. */
+  overflow-x: clip;
+}
+
+.home {
+  margin: 0 auto;
+  max-width: 72rem;
+  padding: 2rem 1rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.home-head {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* The app's own pictures (app/art.jsx): they decorate, so they never take a press. */
+.decor,
+.game-art {
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
+
+.home-hello {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.home-chick {
+  flex: none;
+  width: 5.75rem;
+  height: 5.75rem;
+  margin: -0.75rem 0 -0.75rem -0.5rem;
+  animation: tl-bob 3.2s ease-in-out infinite;
+}
+
+/* A sun and a cloud behind the heading, between the title and the Grown-ups button. */
+.home-sky {
+  position: absolute;
+  z-index: -1;
+  top: -1.25rem;
+  right: 11rem;
+  width: 14rem;
+  height: 8.5rem;
+}
+
+.home-sun {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 7.25rem;
+  height: 7.25rem;
+  animation: home-sun 5s ease-in-out infinite alternate;
+}
+
+.home-cloud {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 7.5rem;
+  height: 7.5rem;
+  animation: home-drift 7s ease-in-out infinite alternate;
+}
+
+/* The sun has a face, so it only rocks a little and never turns upside down. */
+@keyframes home-sun {
+  from { transform: rotate(-7deg); }
+  to { transform: rotate(7deg); }
+}
+
+@keyframes home-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(1.5rem); }
+}
+
+/* Under about 52rem the heading and the button share the width, and the sky would sit on the words. */
+@media (max-width: 52rem) {
+  .home-sky {
+    display: none;
+  }
+}
+
+.home-title h1 {
+  font-size: clamp(2.1rem, 6vw, 3.2rem);
+  line-height: 1.1;
+  color: var(--primary);
+}
+
+.home-tagline {
+  margin: 0.35rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 1.15rem;
+}
+
+.grown-ups-button {
+  height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: 999px;
+  font-size: 1rem;
+}
+
+.home-filter {
+  display: flex;
+}
+
+.home-empty {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--muted-foreground);
+  font-size: 1.1rem;
+}
+
+.home-empty p {
+  margin: 0;
+}
+
+.home-empty-art {
+  flex: none;
+  width: 6rem;
+  height: 6rem;
+}
+
+.home-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.home-group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.4rem;
+}
+
+.home-group-icon {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  background: var(--mark);
+  color: var(--card);
+}
+
+.home-group-icon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.home-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: 1rem;
+}
+
+.game-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 6.75rem;
+  padding: 1rem;
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--mark);
+}
+
+.game-card:has(.game-card-link:focus-visible) {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.game-card-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  outline: none;
+}
+
+.game-disc {
+  flex: none;
+  width: 4.75rem;
+  height: 4.75rem;
+  border-radius: calc(var(--radius) - 2px);
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.game-card:hover .game-disc {
+  transform: rotate(-6deg) scale(1.06);
+}
+
+.game-card-words {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.game-card-name {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.game-card-blurb {
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.game-star {
+  position: relative;
+  z-index: 2;
+  align-self: flex-start;
+  color: var(--muted-foreground);
+}
+
+.game-star[data-on] {
+  color: var(--chart-2);
+}
+
+.game-star svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.game-star[data-on] svg {
+  fill: currentColor;
+}
+
+.save-problem {
+  margin: 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: calc(var(--radius) / 2);
+  background: color-mix(in oklch, var(--destructive) 10%, var(--card));
+  color: var(--foreground);
+  border: 1px solid var(--destructive);
+}
+
+/* ---------- the grown-ups window ---------- */
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.settings-label {
+  font-weight: 600;
+}
+
+.settings-note {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.settings-saved {
+  margin: 0;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.settings-about {
+  margin: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+
+/* ---------- a game ---------- */
+
+.game-page {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.game-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.play-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.play-bar-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.play-bar-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.play-bar-icon {
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: calc(var(--radius) / 2);
+  object-fit: cover;
+}
+
+.play-bar-button {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+}
+
+.play-bar-button svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.play-meter {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem 0.2rem;
+}
+
+.play-meter-bar {
+  flex: 1;
+}
+
+.play-meter-bar [data-slot="progress-track"] {
+  height: 1.1rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.play-meter-bar [data-slot="progress-indicator"] {
+  background: var(--chart-2);
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.play-meter[data-state="lost"] [data-slot="progress-indicator"] {
+  background: var(--destructive);
+}
+
+.play-meter-star {
+  color: var(--chart-2);
+  display: grid;
+  place-items: center;
+}
+
+.play-meter-star svg {
+  width: 1.9rem;
+  height: 1.9rem;
+  fill: currentColor;
+}
+
+.play-meter[data-state="won"] .play-meter-star {
+  animation: tl-bounce 0.6s ease 3;
+}
+
+.play-meter-value {
+  min-width: 2.6ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.game-shell > .save-problem {
+  margin: 0.5rem 1rem 0;
+}
+
+.play-area {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  padding: 0.75rem 1rem 1rem;
+}
+
+.play-stage {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.play-stage[data-over] {
+  pointer-events: none;
+}
+
+.start-card {
+  margin: auto;
+  width: 100%;
+  max-width: 34rem;
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 2px solid var(--border);
+  border-radius: calc(var(--radius) * 1.25);
+  box-shadow: var(--shadow);
+}
+
+.start-disc {
+  flex: none;
+  width: 7rem;
+  height: 7rem;
+  border-radius: calc(var(--radius) + 6px);
+  object-fit: cover;
+  box-shadow: var(--shadow);
+  animation: tl-bob 2.4s ease-in-out infinite;
+}
+
+.start-name {
+  font-size: 1.9rem;
+}
+
+.start-how {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.45;
+}
+
+.start-level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.start-level-words {
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+}
+
+.start-play {
+  height: 3.75rem;
+  padding: 0 2.25rem;
+  border-radius: 999px;
+  font-size: 1.35rem;
+  gap: 0.6rem;
+}
+
+.start-play svg {
+  width: 1.6rem;
+  height: 1.6rem;
+  fill: currentColor;
+}
+
+.end-card {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: color-mix(in oklch, var(--background) 93%, transparent);
+  animation: tl-fade 0.3s ease;
+}
+
+.end-art {
+  flex: none;
+  width: 9rem;
+  height: 9rem;
+  margin-bottom: -0.5rem;
+  animation: tl-bounce 0.7s ease 2;
+}
+
+.end-title {
+  font-size: clamp(1.9rem, 6vw, 2.6rem);
+}
+
+.end-line {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 1.15rem;
+}
+
+.end-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.end-actions > * {
+  height: 3rem;
+  padding: 0 1.25rem;
+  border-radius: 999px;
+  font-size: 1.05rem;
+}
+
+.confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti span {
+  position: absolute;
+  top: -1.5rem;
+  width: 0.7rem;
+  height: 1.05rem;
+  border-radius: calc(var(--radius) / 6);
+  background: var(--chart-1);
+  animation-name: tl-fall;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+
+.confetti span:nth-child(5n + 2) { background: var(--chart-2); }
+.confetti span:nth-child(5n + 3) { background: var(--chart-3); }
+.confetti span:nth-child(5n + 4) { background: var(--chart-4); }
+.confetti span:nth-child(5n + 5) { background: var(--chart-5); }
+.confetti span:nth-child(1) { left: 4%; animation-delay: 0.14s; animation-duration: 2.1s; }
+.confetti span:nth-child(2) { left: 12%; animation-delay: 0.27s; animation-duration: 2.4s; }
+.confetti span:nth-child(3) { left: 20%; animation-delay: 0.41s; animation-duration: 2.7s; }
+.confetti span:nth-child(4) { left: 28%; animation-delay: 0.55s; animation-duration: 2.0s; }
+.confetti span:nth-child(5) { left: 36%; animation-delay: 0.69s; animation-duration: 2.3s; }
+.confetti span:nth-child(6) { left: 44%; animation-delay: 0.82s; animation-duration: 2.6s; }
+.confetti span:nth-child(7) { left: 52%; animation-delay: 0.06s; animation-duration: 1.9s; }
+.confetti span:nth-child(8) { left: 60%; animation-delay: 0.20s; animation-duration: 2.2s; }
+.confetti span:nth-child(9) { left: 68%; animation-delay: 0.33s; animation-duration: 2.5s; }
+.confetti span:nth-child(10) { left: 76%; animation-delay: 0.47s; animation-duration: 1.8s; }
+.confetti span:nth-child(11) { left: 84%; animation-delay: 0.61s; animation-duration: 2.1s; }
+.confetti span:nth-child(12) { left: 92%; animation-delay: 0.74s; animation-duration: 2.4s; }
+.confetti span:nth-child(13) { left: 8%; animation-delay: 0.88s; animation-duration: 2.7s; }
+.confetti span:nth-child(14) { left: 16%; animation-delay: 0.12s; animation-duration: 2.0s; }
+.confetti span:nth-child(15) { left: 24%; animation-delay: 0.26s; animation-duration: 2.3s; }
+.confetti span:nth-child(16) { left: 32%; animation-delay: 0.39s; animation-duration: 2.6s; }
+.confetti span:nth-child(17) { left: 40%; animation-delay: 0.53s; animation-duration: 1.9s; }
+.confetti span:nth-child(18) { left: 48%; animation-delay: 0.67s; animation-duration: 2.2s; }
+.confetti span:nth-child(19) { left: 56%; animation-delay: 0.80s; animation-duration: 2.5s; }
+.confetti span:nth-child(20) { left: 64%; animation-delay: 0.04s; animation-duration: 1.8s; }
+.confetti span:nth-child(21) { left: 72%; animation-delay: 0.18s; animation-duration: 2.1s; }
+.confetti span:nth-child(22) { left: 80%; animation-delay: 0.31s; animation-duration: 2.4s; }
+.confetti span:nth-child(23) { left: 88%; animation-delay: 0.45s; animation-duration: 2.7s; }
+.confetti span:nth-child(24) { left: 96%; animation-delay: 0.59s; animation-duration: 2.0s; }
+
+/* The two- and three-choice switches (All / Favourites, the level, the grown-ups' rows): bigger for small fingers. */
+.home-filter [data-slot="toggle-group-item"],
+.start-level [data-slot="toggle-group-item"] {
+  height: 2.6rem;
+  padding: 0 1.1rem;
+  font-size: 1rem;
+}
+
+.home-filter [data-slot="toggle-group-item"][aria-pressed="true"],
+.start-level [data-slot="toggle-group-item"][aria-pressed="true"],
+[data-slot="dialog-content"] [data-slot="toggle-group-item"][aria-pressed="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+}
+
+[data-slot="dialog-content"] [data-slot="toggle-group-item"] {
+  height: 2.4rem;
+  padding: 0 0.85rem;
+}
+
+/* On a phone the bar keeps the game's name readable: the small group disc goes, the gaps shrink. */
+@media (max-width: 30rem) {
+  .play-bar {
+    gap: 0;
+    padding: 0.35rem 0.35rem;
+  }
+
+  .play-bar-icon {
+    display: none;
+  }
+
+  .home-chick {
+    width: 4.25rem;
+    height: 4.25rem;
+  }
+
+  .end-art {
+    width: 7rem;
+    height: 7rem;
+  }
+
+  .play-bar-title {
+    font-size: 1.1rem;
+  }
+
+  .play-bar-button {
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+}
+
+/* ---------- pieces every game uses (app/_games/parts.jsx) ---------- */
+
+.play-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.play-prompt-text {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: clamp(1.4rem, 4.2vw, 2.2rem);
+  line-height: 1.2;
+}
+
+.play-hear {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+}
+
+.play-hear svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.play-grid {
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.play-grid[data-count="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (min-width: 36rem) {
+  .play-grid:is([data-count="5"], [data-count="6"], [data-count="9"]) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .play-grid:is([data-count="7"], [data-count="8"], [data-count="10"], [data-count="11"], [data-count="12"]) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+.play-choice {
+  height: auto;
+  min-height: 5.5rem;
+  padding: 0.6rem;
+  border-width: 3px;
+  border-radius: var(--radius);
+  background: var(--card);
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: clamp(1.8rem, 6vw, 3rem);
+  line-height: 1;
+  box-shadow: var(--shadow);
+  transition: transform 0.12s ease, border-color 0.15s ease, opacity 0.2s ease;
+}
+
+.play-choice:hover {
+  border-color: var(--primary);
+}
+
+.play-choice:active {
+  transform: scale(0.96);
+}
+
+.play-choice[data-state="right"] {
+  border-color: var(--chart-3);
+  background: color-mix(in oklch, var(--chart-3) 14%, var(--card));
+  animation: tl-bounce 0.5s ease;
+}
+
+.play-choice[data-state="wrong"] {
+  border-color: var(--destructive);
+  opacity: 0.45;
+  animation: tl-shake 0.4s ease;
+}
+
+.play-choice[data-state="done"] {
+  opacity: 0.4;
+}
+
+.play-glyph {
+  display: inline-block;
+  line-height: 1;
+}
+
+.play-glyph[data-size="medium"] { font-size: clamp(1.6rem, 4.5vw, 2.4rem); }
+.play-glyph[data-size="large"] { font-size: clamp(2.4rem, 8vw, 4.5rem); }
+.play-glyph[data-size="huge"] { font-size: clamp(4rem, 15vw, 8rem); }
+
+.drag-piece {
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+  transform: translate(var(--drag-x, 0px), var(--drag-y, 0px));
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease;
+}
+
+.drag-piece[data-dragging] {
+  position: relative;
+  z-index: 20;
+  cursor: grabbing;
+  transition: none;
+  box-shadow: var(--shadow);
+}
+
+.drag-piece[data-selected] {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.drag-piece:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+
+[data-ready] {
+  cursor: pointer;
+  outline: 3px dashed var(--ring);
+  outline-offset: 4px;
+}
+
+[data-hover] {
+  outline: 3px solid var(--ring);
+  outline-offset: 4px;
+}
+
+.play-not-ready {
+  margin: auto;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.tl-pop { animation: tl-pop 0.35s ease; }
+.tl-bounce { animation: tl-bounce 0.5s ease; }
+.tl-shake { animation: tl-shake 0.4s ease; }
+
+@keyframes tl-bounce {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.12); }
+  65% { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+@keyframes tl-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+@keyframes tl-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes tl-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes tl-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tl-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110dvh) rotate(540deg); opacity: 0.9; }
+}
+
+/* A person who asked for stillness gets the same games with nothing bouncing, shaking, bobbing or falling. */
+@media (prefers-reduced-motion: reduce) {
+  .game-card,
+  .game-disc,
+  .start-disc,
+  .end-art,
+  .home-chick,
+  .home-sun,
+  .home-cloud,
+  .play-choice,
+  .play-meter-star,
+  .tl-pop,
+  .tl-bounce,
+  .tl-shake {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .game-card:hover,
+  .game-card:hover .game-disc {
+    transform: none;
+  }
+
+  .confetti {
+    display: none;
+  }
+}
