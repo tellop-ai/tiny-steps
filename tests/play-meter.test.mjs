@@ -24,6 +24,21 @@ test('a right answer adds the gain and wins exactly at 100, never above', () => 
   for (const gain of [0, -5, 2.5, Number.NaN, '10']) assert.deepEqual(afterRight({ value: 50, state: 'playing' }, gain), { value: 50, state: 'playing' });
 });
 
+test('a step of a round fills the meter but never wins; the round\'s last step does', () => {
+  // A step just below, on and above the top: full at most, still playing.
+  assert.deepEqual(afterRight({ value: 94, state: 'playing' }, 5, { step: true }), { value: 99, state: 'playing' });
+  assert.deepEqual(afterRight({ value: 95, state: 'playing' }, 5, { step: true }), { value: 100, state: 'playing' });
+  assert.deepEqual(afterRight({ value: 100, state: 'playing' }, 5, { step: true }), { value: 100, state: 'playing' });
+  // The round's last step on a full meter wins.
+  assert.deepEqual(afterRight({ value: 100, state: 'playing' }, 5, { step: false }), { value: 100, state: 'won' });
+  assert.deepEqual(afterRight({ value: 100, state: 'playing' }, 5), { value: 100, state: 'won' });
+  // Only `true` means a step: anything else is a round's end, as before.
+  for (const step of [undefined, null, 1, 'yes', false]) assert.equal(afterRight({ value: 95, state: 'playing' }, 5, { step }).state, 'won');
+  assert.equal(afterRight({ value: 95, state: 'playing' }, 5, null).state, 'won');
+  // A miss on a full, waiting meter takes its loss and play goes on.
+  assert.deepEqual(afterMiss({ value: 100, state: 'playing' }, 'normal'), { value: 95, state: 'playing' });
+});
+
 test('a miss takes the challenge loss and loses exactly at 0, never below', () => {
   assert.deepEqual(MISS_LOSS, { gentle: 0, normal: 5, strict: 10 });
   assert.deepEqual(CHALLENGES, ['gentle', 'normal', 'strict']);

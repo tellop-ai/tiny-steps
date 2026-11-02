@@ -9,8 +9,10 @@
  *
  * - `level`: 'easy' | 'normal' | 'hard', fixed for the run
  * - `locale`: 'en' | 'tr', the words and the voice
- * - `play`: stable for the run: `right()`, `miss()`, `say(text)`, `praise()`,
- *   `sound(name)` ('tap' | 'pop' | 'right' | 'miss' | 'win'), `isOver()`
+ * - `play`: stable for the run: `right()`, `miss()`, `say(text)`,
+ *   `sound(name)` ('tap' | 'pop' | 'right' | 'miss' | 'win'), `isOver()`.
+ *   `right({ step: true })` reports one step of a round that goes on (a dot,
+ *   a piece): it moves the meter, but the run ends only at the round's end.
  * - `over`: true once the run is won or lost; the game takes no more input
  * - `paused`: true while the grown-ups window is open; a game that moves on
  *   its own stops its clock (no movement, no miss)
@@ -18,7 +20,7 @@
  * Play again remounts the game, so a run always starts fresh.
  */
 
-import { ChevronLeft, ChevronRight, House, Play, RotateCcw, Star } from 'lucide-react';
+import { ArrowLeft, ChevronRight, House, Play, RotateCcw, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -38,8 +40,6 @@ import { GAME_COMPONENTS } from './games.js';
 
 /** How long the last right answer's motion plays before the end card shows, in milliseconds. */
 const END_PAUSE_MS = 700;
-/** How many praise lines the words hold (`play.praise.1` …). */
-const PRAISE_LINES = 4;
 /** Confetti pieces on the win card; each piece's place and colour is a class in `app/globals.css`. */
 const CONFETTI = 24;
 
@@ -89,12 +89,9 @@ export function GameFrame({ gameId, problem }) {
       endTimer.current = setTimeout(() => {
         endTimer.current = null;
         setPhase(how);
-        if (how === 'won') {
-          sounds.play('win');
-          speaker.say(t('play.wonSay', localeRef.current), localeRef.current);
-        } else {
-          speaker.say(t('play.lostSay', localeRef.current), localeRef.current);
-        }
+        // A win is a tune, not a voice: a spoken "well done" after every run felt odd to a child.
+        if (how === 'won') sounds.play('win');
+        else speaker.say(t('play.lostSay', localeRef.current), localeRef.current);
       }, END_PAUSE_MS);
     },
     [sounds, speaker],
@@ -108,10 +105,10 @@ export function GameFrame({ gameId, problem }) {
   // One play object for each run: its methods read the latest values through refs.
   const play = useMemo(
     () => ({
-      right() {
+      right(options) {
         const now = meterRef.current;
         if (now.state !== 'playing') return;
-        const next = afterRight(now, game.gain);
+        const next = afterRight(now, game.gain, { step: options?.step === true });
         setMeterBoth(next);
         sounds.play('right');
         if (next.state === 'won') finish('won');
@@ -126,10 +123,6 @@ export function GameFrame({ gameId, problem }) {
       },
       say(text) {
         if (meterRef.current.state === 'playing' || phaseRef.current === 'playing') speaker.say(text, localeRef.current);
-      },
-      praise() {
-        const line = 1 + Math.floor(Math.random() * PRAISE_LINES);
-        speaker.say(t(`play.praise.${line}`, localeRef.current), localeRef.current);
       },
       sound(soundName) {
         sounds.play(soundName);
@@ -166,24 +159,23 @@ export function GameFrame({ gameId, problem }) {
 
   return (
     <div className="game-shell" data-mark={category?.mark} data-phase={phase}>
+      {/* Back always goes to the list of games; the bar never steps to another game (a child pressing it got lost). */}
       <nav className="play-bar" aria-label={name}>
-        <Link href="/" className={buttonVariants({ variant: 'ghost', size: 'icon-lg', className: 'play-bar-button' })} aria-label={t('play.allGames', locale)} title={t('play.allGames', locale)}>
-          <House aria-hidden="true" />
-        </Link>
-        <Link href={`/play/${around.previous}`} className={buttonVariants({ variant: 'ghost', size: 'icon-lg', className: 'play-bar-button' })} aria-label={t('play.previous', locale, { name: t(`games.${around.previous}.name`, locale) })} title={t('play.previous', locale, { name: t(`games.${around.previous}.name`, locale) })}>
-          <ChevronLeft aria-hidden="true" />
-        </Link>
+        <div className="play-bar-side">
+          <Link href="/" className={buttonVariants({ variant: 'ghost', size: 'icon-lg', className: 'play-bar-button' })} aria-label={t('play.allGames', locale)} title={t('play.allGames', locale)}>
+            <ArrowLeft aria-hidden="true" />
+          </Link>
+        </div>
         <h1 className="play-bar-title">
           <GameArt gameId={gameId} className="play-bar-icon" />
           <span className="play-bar-name">{name}</span>
         </h1>
-        <Link href={`/play/${around.next}`} className={buttonVariants({ variant: 'ghost', size: 'icon-lg', className: 'play-bar-button' })} aria-label={t('play.next', locale, { name: t(`games.${around.next}.name`, locale) })} title={t('play.next', locale, { name: t(`games.${around.next}.name`, locale) })}>
-          <ChevronRight aria-hidden="true" />
-        </Link>
-        <Button type="button" variant="ghost" size="icon-lg" className="play-bar-button" onClick={backToStart} aria-label={t('play.restart', locale)} title={t('play.restart', locale)}>
-          <RotateCcw aria-hidden="true" />
-        </Button>
-        <GrownUps compact />
+        <div className="play-bar-side play-bar-end">
+          <Button type="button" variant="ghost" size="icon-lg" className="play-bar-button" onClick={backToStart} aria-label={t('play.restart', locale)} title={t('play.restart', locale)}>
+            <RotateCcw aria-hidden="true" />
+          </Button>
+          <GrownUps compact />
+        </div>
       </nav>
 
       <div className="play-meter" data-state={meter.state}>

@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { GAMES } from '../lib/play/catalog.js';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public', 'art');
-const DECOR = ['chick', 'cloud', 'sun', 'trophy', 'teddy', 'stars'];
+const DECOR = ['chick', 'cloud', 'sun', 'trophy', 'teddy', 'stars', 'basket-teddy'];
 
 /**
  * A WebP file's width, height and whether it carries a see-through layer, read

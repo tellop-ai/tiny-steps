@@ -65,7 +65,6 @@ export default function RainbowMaker({ level, locale, play, over }) {
       setMarks((all) => ({ ...all, [pot]: 'right' }));
       setLeaving(true);
       setRights((count) => count + 1);
-      play.say(t('games.rainbow-maker.right', locale, { colour: word }));
       play.right();
       later(() => {
         if (!play.isOver()) next();

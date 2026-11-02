@@ -1,4 +1,4 @@
-/* colour-muncher: this game's own rules. Tokens by name only; every class starts with cm-. */
+/* colour-muncher (Colour basket): this game's own rules. Tokens by name only; every class starts with cm-. */
 
 .cm {
   flex: 1;
@@ -17,24 +17,47 @@
   min-height: 0;
 }
 
-.cm-monster {
-  width: clamp(8rem, 26vh, 14rem);
-  height: auto;
+/* The teddy's picture and the thing in its basket share one box; sizes inside are shares of its width. */
+.cm-friend {
+  position: relative;
   flex: none;
+  width: clamp(8rem, 28vh, 14.5rem);
+  container-type: inline-size;
 }
 
-.cm-body { fill: var(--chart-5); }
-.cm-belly { fill: var(--card); opacity: 0.35; }
-.cm-horn { fill: var(--chart-2); }
-.cm-eye { fill: var(--card); stroke: var(--foreground); stroke-width: 2; }
-.cm-pupil { fill: var(--foreground); transition: transform 0.2s ease; }
-.cm-mouth { fill: var(--foreground); transform-box: fill-box; transform-origin: center; transition: transform 0.15s ease; }
-.cm-tooth { fill: var(--card); }
+.cm-teddy {
+  width: 100%;
+  height: auto;
+}
 
-.cm[data-mood="chomp"] .cm-monster { animation: tl-bounce 0.5s ease; }
-.cm[data-mood="chomp"] .cm-mouth { animation: cm-chomp 0.45s ease 2; }
-.cm[data-mood="no"] .cm-monster { animation: tl-shake 0.4s ease; }
-.cm[data-mood="no"] .cm-pupil { transform: translateY(4px); }
+.cm[data-mood="thanks"] .cm-friend { animation: tl-bounce 0.5s ease; }
+.cm[data-mood="no"] .cm-friend { animation: tl-shake 0.4s ease; }
+
+/*
+ * A window whose bottom edge follows the basket's front rim, a shallow curve
+ * in the picture (x 27% to 71%, lowest at 64% of the height, 6% higher at its
+ * ends): the thing shows only above the rim, so it sits inside the basket.
+ * The curve is picture geometry, so it is a clip shape, not a corner.
+ */
+.cm-in-basket {
+  position: absolute;
+  left: 27%;
+  top: 10%;
+  width: 44%;
+  height: 54%;
+  clip-path: polygon(0 0, 100% 0, 100% 89%, 90% 95.6%, 75% 98.5%, 50% 100%, 25% 98.5%, 10% 95.6%, 0 89%);
+  display: flex;
+  justify-content: center;
+}
+
+.cm-in-basket-thing {
+  position: absolute;
+  bottom: -9cqw;
+  font-size: 25cqw;
+  line-height: 1;
+  transform: rotate(-10deg);
+  animation: cm-drop 0.45s ease;
+}
 
 .cm-bubble {
   position: relative;
@@ -57,14 +80,17 @@
   font-size: 1.3rem;
 }
 
-@keyframes cm-chomp {
-  0%, 100% { transform: scaleY(1); }
-  50% { transform: scaleY(0.2); }
+.cm-thing { display: inline-flex; }
+
+@keyframes cm-drop {
+  0% { transform: translateY(-160%) rotate(-10deg); opacity: 0; }
+  60% { opacity: 1; }
+  100% { transform: translateY(0) rotate(-10deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cm-monster,
-  .cm-mouth,
+  .cm-friend,
+  .cm-in-basket-thing,
   .cm-bubble {
     animation: none !important;
   }

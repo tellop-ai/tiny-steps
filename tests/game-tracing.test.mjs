@@ -4,6 +4,8 @@ import { test } from 'node:test';
 const {
   MIN_PART,
   PATHS,
+  INK_WIDTH,
+  LINE_SUCCESS,
   SUCCESS,
   depth,
   dropSpecks,
@@ -65,12 +67,13 @@ function oneWide(grid) {
   return true;
 }
 
-/** Covers the centre points with these indexes by hand. */
-function coverIndexes(trace, coverage, indexes) {
-  for (const index of indexes) {
-    coverage.covered[index] = 1;
+/** Paints these mask cells by hand. */
+function paintCells(trace, coverage, cells) {
+  for (const cell of cells) {
+    if (coverage.painted[cell]) continue;
+    coverage.painted[cell] = 1;
     coverage.count += 1;
-    coverage.partCounts[trace.pointPart[index]] += 1;
+    coverage.partCounts[trace.cellPart[cell] - 1] += 1;
   }
 }
 
@@ -183,7 +186,7 @@ test('depth counts the cells to the nearest edge, and the stroke width follows i
   assert.equal(cells[9 * 60 + 30], 0, 'off the mask is 0');
   const trace = prepare(mask, { tolerance: 2 });
   assert.ok(trace.strokeWidth >= 9 && trace.strokeWidth <= 11, `width ${trace.strokeWidth}`);
-  assert.ok(Math.abs(trace.pen - (trace.strokeWidth / 2 + 2)) < 1e-9);
+  assert.ok(Math.abs(trace.pen - (trace.strokeWidth * INK_WIDTH) / 2) < 1e-9, 'the ink is a little wider than the path');
 });
 
 test('the allowed area is the mask widened by the tolerance', () => {
@@ -201,7 +204,7 @@ test('a bar traced end to end along its middle is done; a stroke off it has left
   const mask = box(makeGrid(80, 30), 10, 10, 69, 19);
   const trace = prepare(mask, { tolerance: 3 });
   assert.equal(trace.partTotals.length, 1);
-  assert.ok(trace.pen >= trace.strokeWidth / 2, 'the pen reaches the line from the path edge');
+  assert.ok(trace.pen >= trace.strokeWidth / 2, 'the ink is at least as wide as the path');
 
   const coverage = startCoverage(trace);
   stamp(trace, coverage, 10, 15);
@@ -217,13 +220,36 @@ test('a bar traced end to end along its middle is done; a stroke off it has left
   assert.equal(edge.left, false, 'stopping on the allowed edge has not left');
 });
 
-test('a stroke along the path edge still covers the centre line', () => {
+test('a stroke along one edge paints only part of the path and is not done; the other edge finishes it', () => {
+  // A child's report: ink over about three quarters of a letter finished it, because the centre line was all covered.
   const mask = box(makeGrid(80, 30), 10, 10, 69, 19);
   const trace = prepare(mask, { tolerance: 3 });
   const coverage = startCoverage(trace);
-  stamp(trace, coverage, 10, 8);
-  const edge = stroke(trace, coverage, { x: 10, y: 8 }, { x: 69, y: 8 }); // 2 cells above the mask
-  assert.equal(edge.left, false);
+  stamp(trace, coverage, 10, 11);
+  assert.equal(stroke(trace, coverage, { x: 10, y: 11 }, { x: 69, y: 11 }).left, false);
+  const oneEdge = measure(trace, coverage);
+  assert.equal(oneEdge.line, 1, 'the centre line is under the ink');
+  assert.ok(oneEdge.fraction > 0.6 && oneEdge.fraction < SUCCESS, `one edge paints ${oneEdge.fraction}`);
+  assert.equal(oneEdge.done, false);
+  stroke(trace, coverage, { x: 10, y: 18 }, { x: 69, y: 18 });
+  assert.equal(measure(trace, coverage).done, true);
+});
+
+test('a short stroke (a tail) must be painted even when the area is far enough', () => {
+  const mask = makeGrid(120, 40);
+  box(mask, 10, 20, 109, 29); // the long bar
+  box(mask, 58, 4, 61, 19); // a thin stub on top, joined to it
+  const trace = prepare(mask, { tolerance: 3 });
+  assert.equal(trace.partTotals.length, 1, 'bar and stub are one part');
+  const coverage = startCoverage(trace);
+  stamp(trace, coverage, 10, 25);
+  stroke(trace, coverage, { x: 10, y: 25 }, { x: 109, y: 25 });
+  const barOnly = measure(trace, coverage);
+  assert.ok(barOnly.fraction >= SUCCESS, `the bar alone paints ${barOnly.fraction} of the area`);
+  assert.ok(barOnly.line < LINE_SUCCESS, `the bar alone paints ${barOnly.line} of the line`);
+  assert.equal(barOnly.done, false);
+  assert.equal(barOnly.missingPart, false, 'one part: nothing to point at apart');
+  stroke(trace, coverage, { x: 60, y: 22 }, { x: 60, y: 4 });
   assert.equal(measure(trace, coverage).done, true);
 });
 
@@ -235,39 +261,43 @@ test('a pen point outside the allowed area covers nothing', () => {
   assert.equal(coverage.count, 0);
 });
 
-test('the threshold: exactly the success share is done, one point under is not', () => {
-  // A hand-made trace of 20 centre points in one part.
+test('the area threshold: exactly the success share is done, one cell under is not', () => {
   const mask = box(makeGrid(80, 30), 10, 10, 69, 19);
   const trace = prepare(mask, { tolerance: 3 });
-  const total = trace.points.length / 2;
+  const total = trace.partTotals[0];
   const needed = Math.ceil(SUCCESS * total);
-  const all = [...Array(total).keys()];
+  // The centre line's cells first, so only the area decides.
+  const line = [...Array(trace.points.length / 2).keys()].map((index) => trace.points[index * 2 + 1] * trace.width + trace.points[index * 2]);
+  const rest = [...trace.cellPart.keys()].filter((cell) => trace.cellPart[cell] > 0 && !line.includes(cell));
+  const order = [...line, ...rest];
 
   const under = startCoverage(trace);
-  coverIndexes(trace, under, all.slice(0, needed - 1));
+  paintCells(trace, under, order.slice(0, needed - 1));
+  assert.equal(measure(trace, under).line, 1);
   assert.equal(measure(trace, under).done, false, `${needed - 1} of ${total}`);
-  assert.ok(measure(trace, under).fraction < SUCCESS);
 
   const exact = startCoverage(trace);
-  coverIndexes(trace, exact, all.slice(0, needed));
+  paintCells(trace, exact, order.slice(0, needed));
   assert.equal(measure(trace, exact).done, true, `${needed} of ${total}`);
-
-  const over = startCoverage(trace);
-  coverIndexes(trace, over, all.slice(0, needed + 1));
-  assert.equal(measure(trace, over).done, true);
 });
 
-test('a share of exactly nine tenths is done', () => {
-  const trace = {
-    points: new Int32Array(20),
-    pointPart: new Int32Array(10),
-    partTotals: [10],
-  };
-  const coverage = { covered: new Uint8Array(10), count: 9, partCounts: [9] };
-  assert.equal(measure(trace, coverage).fraction, SUCCESS);
-  assert.equal(measure(trace, coverage).done, true);
-  assert.equal(measure(trace, { ...coverage, count: 8, partCounts: [8] }).done, false);
-  assert.equal(measure(trace, { ...coverage, count: 10, partCounts: [10] }).done, true);
+test('the line threshold: one centre point too few is not done, with all the rest painted', () => {
+  const mask = box(makeGrid(80, 30), 10, 10, 69, 19);
+  const trace = prepare(mask, { tolerance: 3 });
+  const points = trace.points.length / 2;
+  const allowedOff = Math.floor(points * (1 - LINE_SUCCESS));
+  const lineCell = (index) => trace.points[index * 2 + 1] * trace.width + trace.points[index * 2];
+  const skipped = new Set([...Array(allowedOff + 1).keys()].map(lineCell));
+  const cells = [...trace.cellPart.keys()].filter((cell) => trace.cellPart[cell] > 0);
+
+  const short = startCoverage(trace);
+  paintCells(trace, short, cells.filter((cell) => !skipped.has(cell)));
+  assert.ok(measure(trace, short).fraction >= SUCCESS);
+  assert.equal(measure(trace, short).done, false, `${allowedOff + 1} of ${points} centre points unpainted`);
+
+  const enough = startCoverage(trace);
+  paintCells(trace, enough, cells.filter((cell) => cell === lineCell(0) || !skipped.has(cell)));
+  assert.equal(measure(trace, enough).done, true, `${allowedOff} of ${points} unpainted`);
 });
 
 test('a dotted i is not done until its dot is covered too', () => {
@@ -281,7 +311,7 @@ test('a dotted i is not done until its dot is covered too', () => {
   stamp(trace, coverage, 13, 20);
   stroke(trace, coverage, { x: 13, y: 20 }, { x: 13, y: 65 });
   const stemOnly = measure(trace, coverage);
-  assert.ok(stemOnly.fraction >= SUCCESS, `the stem alone is ${stemOnly.fraction}`);
+  assert.equal(stemOnly.parts.filter(Boolean).length, 1, 'the stem alone is done');
   assert.equal(stemOnly.done, false, 'the dot is still missing');
   assert.equal(stemOnly.missingPart, true);
 
@@ -298,7 +328,7 @@ test('a part that thins away entirely keeps one point to cover', () => {
   assert.equal(cellsOf(thin(box(makeGrid(6, 6), 2, 2, 3, 3))).length, 0, 'a 2 × 2 block alone thins away');
   const trace = prepare(mask, { tolerance: 2 });
   assert.equal(trace.partTotals.length, 2);
-  assert.equal(trace.partTotals[1], 1, 'the block keeps one point');
+  assert.equal([...trace.pointPart].filter((part) => part === 1).length, 1, 'the block keeps one point');
   const coverage = startCoverage(trace);
   stamp(trace, coverage, 5, 8);
   stroke(trace, coverage, { x: 5, y: 8 }, { x: 34, y: 8 });

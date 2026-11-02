@@ -161,11 +161,11 @@ test('tile edges take the five marks in turn', () => {
 });
 
 test('the game has its words in both languages, and Turkish puts no ending after the number', () => {
-  for (const key of ['prompt', 'found', 'notThat', 'board']) {
+  for (const key of ['prompt', 'notThat', 'board']) {
     assert.ok(en[`games.number-hunt.${key}`], `en ${key}`);
     assert.ok(tr[`games.number-hunt.${key}`], `tr ${key}`);
   }
-  for (const key of ['prompt', 'found', 'notThat']) {
+  for (const key of ['prompt', 'notThat']) {
     for (const words of [en, tr]) assert.match(words[`games.number-hunt.${key}`], /\{n\}/u);
     assert.doesNotMatch(tr[`games.number-hunt.${key}`], /\{n\}['’]?[a-zçğıöşü]/iu, key);
   }

@@ -79,13 +79,12 @@ test('an unknown level plays as normal', () => {
 });
 
 test('the game\'s words are in both languages and fill their numbers', () => {
-  for (const key of ['prompt', 'yum', 'notThat', 'hedgehog', 'tile']) {
+  for (const key of ['prompt', 'notThat', 'hedgehog', 'tile']) {
     const full = `games.hungry-hedgehog.${key}`;
     assert.ok(en[full] && tr[full], full);
   }
   for (const words of [en, tr]) {
     assert.match(words['games.hungry-hedgehog.prompt'], /\{n\}/u);
-    assert.match(words['games.hungry-hedgehog.yum'], /\{n\}/u);
     assert.match(words['games.hungry-hedgehog.notThat'], /\{m\}.*\{n\}/u);
     assert.match(words['games.hungry-hedgehog.tile'], /\{n\}/u);
   }

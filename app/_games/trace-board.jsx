@@ -4,7 +4,7 @@
  * The trace board, shared by Number tracing and Letter tracing: a square
  * drawing surface with the glyph drawn faintly
  * in the app's own rounded face, ink that follows the pen (mouse, finger or
- * pen), a bar that fills as the glyph's centre line is covered, and Rub out,
+ * pen), a bar that fills as the glyph is painted, and Rub out,
  * Skip and Hear buttons. The rules are `lib/games/tracing.js`; this file only
  * draws and listens.
  *
@@ -26,7 +26,7 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
 
-import { PATHS, SUCCESS, fitGlyph, inside, maskFromAlpha, measure, prepare, stamp, startCoverage, stroke } from '../../lib/games/tracing.js';
+import { PATHS, fitGlyph, inside, maskFromAlpha, measure, prepare, stamp, startCoverage, stroke } from '../../lib/games/tracing.js';
 
 import { Prompt } from './parts.jsx';
 
@@ -36,7 +36,7 @@ const GRID = 192;
 /** CSS pixels kept free round the surface for its shadow. */
 const SHADOW_ROOM = 10;
 
-/** How full the bar may look while a part (a dot, a cedilla) is still missing. */
+/** How full the bar may look while the glyph is not done (a dot, a short stroke, a strip still missing). */
 const MISSING_PART_BAR = 0.96;
 
 /**
@@ -159,11 +159,11 @@ export default function TraceBoard({ glyph, path, guide, prompt, locale, words, 
 
   const outlineWidth = useCallback(() => (model.current.layout ? PATHS[path].grow * model.current.layout.size : 0), [path]);
 
-  /** Ink width in CSS pixels: about half the glyph's stroke. */
+  /** Ink width in CSS pixels: the pen's painted width, so the ink shows exactly what counts. */
   const inkWidth = useCallback(() => {
     const { trace, side } = model.current;
     if (!trace || side === 0) return 8;
-    return Math.max(6, (trace.strokeWidth * side) / GRID / 2);
+    return (2 * trace.pen * side) / GRID;
   }, []);
 
   /** A canvas sized to the board and the screen's pixel ratio, cleared, in CSS pixels. */
@@ -235,8 +235,8 @@ export default function TraceBoard({ glyph, path, guide, prompt, locale, words, 
       context.strokeStyle = colours.hint;
       context.lineWidth = Math.max(3, cell * 1.2);
       context.setLineDash([context.lineWidth * 2.5, context.lineWidth * 2]);
-      parts.forEach((share, part) => {
-        if (share >= SUCCESS) return;
+      parts.forEach((partDone, part) => {
+        if (partDone) return;
         let left = Infinity;
         let right = -Infinity;
         let top = Infinity;
@@ -295,9 +295,8 @@ export default function TraceBoard({ glyph, path, guide, prompt, locale, words, 
     const { trace, coverage } = model.current;
     if (!trace || !coverage || model.current.done) return;
     const result = measure(trace, coverage);
-    let share = Math.min(1, result.fraction / SUCCESS);
-    if (!result.done) share = Math.min(share, MISSING_PART_BAR);
-    if (result.done) share = 1;
+    // The bar is the share painted, as the eye sees it; it is full only when the glyph is done.
+    const share = result.done ? 1 : Math.min(result.fraction, MISSING_PART_BAR);
     fillRef.current?.style.setProperty('transform', `scaleX(${share.toFixed(3)})`);
     meterRef.current?.setAttribute('aria-valuenow', String(Math.round(share * 100)));
     surfaceRef.current?.setAttribute('data-coverage', String(Math.round(result.fraction * 100)));

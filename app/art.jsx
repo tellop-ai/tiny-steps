@@ -11,7 +11,7 @@
  */
 
 /** The decorations the app ships. */
-export const DECOR = Object.freeze(['chick', 'cloud', 'sun', 'trophy', 'teddy', 'stars']);
+export const DECOR = Object.freeze(['chick', 'cloud', 'sun', 'trophy', 'teddy', 'stars', 'basket-teddy']);
 
 /** @param {string[]} names */
 const classes = (...names) => names.filter(Boolean).join(' ');

@@ -127,7 +127,6 @@ export default function ToyRoom({ level, locale, play, over, paused = false }) {
       waiting.current = true;
       setFound(toyId);
       sceneRef.current?.hop(toyId);
-      play.say(t('games.toy-room.yes', locale, fill(toy.kind)));
       play.right();
       later(() => {
         if (play.isOver()) return;

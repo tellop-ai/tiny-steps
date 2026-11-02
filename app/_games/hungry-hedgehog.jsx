@@ -80,7 +80,6 @@ export default function HungryHedgehog({ level, locale, play, over }) {
       busy.current = true;
       setRefused(null);
       setEaten(tileId);
-      play.say(t('games.hungry-hedgehog.yum', locale, { n: tile.value }));
       play.right();
       later(() => {
         if (!play.isOver()) next();

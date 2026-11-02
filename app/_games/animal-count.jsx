@@ -150,7 +150,6 @@ export default function AnimalCount({ level, locale, play, over }) {
     if (value === round.count) {
       busy.current = true;
       setMarks((all) => ({ ...all, [value]: 'right' }));
-      play.praise();
       play.right();
       later(() => {
         if (!play.isOver()) next();

@@ -5,21 +5,33 @@
  * board; the child taps them in order, a line joins each to the last, and the
  * last dot closes the picture, which fills softly and is named. Drawn in SVG
  * from the look's tokens; dots have a tap area larger than the dot itself.
+ * Each dot is one step of the picture, so the run never ends half-way through one.
+ *
+ * A review case may name the picture in the address (`?picture=castle`); a
+ * picture the level does not play is ignored. Every picture of the run is then
+ * that one, so a case knows how many dots each round has.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { t } from '../../lib/i18n/index.js';
-import { PICTURES, dotSizes, glows, isComplete, markOf, nextPicture, tapResult } from '../../lib/games/dot-to-dot.js';
+import { PICTURES, dotSizes, glows, isComplete, markOf, nextPicture, picturesFor, tapResult } from '../../lib/games/dot-to-dot.js';
 
 import { Prompt, useFlash, useLater } from './parts.jsx';
 
 /** How long a finished picture shows before the next one, in milliseconds. */
 const NEXT_PICTURE_MS = 1800;
 
+/** The picture a review case asked for in the address, if this level plays it. */
+function wantedPicture(level) {
+  if (typeof window === 'undefined') return null;
+  const id = new URLSearchParams(window.location.search).get('picture');
+  return picturesFor(level).find((each) => each.id === id) ?? null;
+}
+
 /** @param {{ level: string, locale: string, play: any, over: boolean }} props */
 export default function DotToDot({ level, locale, play, over }) {
-  const [picture, setPicture] = useState(() => nextPicture(level, null));
+  const [picture, setPicture] = useState(() => wantedPicture(level) ?? nextPicture(level, null));
   const [joined, setJoined] = useState(0);
   const [shaking, setShaking] = useFlash(450);
   const later = useLater();
@@ -48,7 +60,7 @@ export default function DotToDot({ level, locale, play, over }) {
   const next = useCallback(() => {
     busy.current = false;
     setJoined(0);
-    setPicture((current) => nextPicture(level, current.id));
+    setPicture((current) => wantedPicture(level) ?? nextPicture(level, current.id));
   }, [level]);
 
   function tap(index) {
@@ -63,7 +75,7 @@ export default function DotToDot({ level, locale, play, over }) {
     }
     const now = joined + 1;
     setJoined(now);
-    play.right();
+    play.right({ step: !isComplete(now, count) });
     if (isComplete(now, count)) {
       busy.current = true;
       play.say(name);

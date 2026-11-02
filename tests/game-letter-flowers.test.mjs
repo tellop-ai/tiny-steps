@@ -4,7 +4,7 @@ import { test } from 'node:test';
 const { ALPHABETS, EXAMPLES, small } = await import('../lib/games/letters.js');
 const {
   FULL_BLOOM, GROUND_Y, HEAD_BIGGEST, HEAD_SMALLEST, LEVELS, PETALS_FEWEST, PETALS_MOST, SMALL_LOOK_ALIKE, STEM_SHORTEST, STEM_TALLEST,
-  growth, isRight, makeRound, splitWord,
+  growth, isRight, makeRound,
 } = await import('../lib/games/letter-flowers.js');
 
 /** A fixed source of chance (a small linear congruential sequence), so a run is the same every time. */
@@ -142,23 +142,6 @@ test('only Normal shows the example word, and every letter in both alphabets has
       assert.equal(makeRound('hard', locale, null, pick).example, null);
     }
   }
-});
-
-test('the example word splits around its letter for every example, start or inside', () => {
-  for (const locale of LOCALES) {
-    for (const letter of ALPHABETS[locale]) {
-      const { word, inside } = EXAMPLES[locale][letter];
-      const parts = splitWord(word, letter, locale);
-      assert.equal(parts.before + parts.match + parts.after, word);
-      assert.equal(parts.match, small(letter, locale), `${locale} ${letter} in ${word}`);
-      assert.equal(parts.before === '', !inside, `${locale} ${letter}: starts with it unless marked inside`);
-    }
-  }
-  assert.deepEqual(splitWord('fox', 'X', 'en'), { before: 'fo', match: 'x', after: '' });
-  assert.deepEqual(splitWord('dağ', 'Ğ', 'tr'), { before: 'da', match: 'ğ', after: '' });
-  assert.deepEqual(splitWord('ışık', 'I', 'tr'), { before: '', match: 'ı', after: 'şık' });
-  assert.deepEqual(splitWord('inek', 'İ', 'tr'), { before: '', match: 'i', after: 'nek' });
-  assert.deepEqual(splitWord('moon', 'Z', 'en'), { before: 'moon', match: '', after: '' });
 });
 
 test('only the tile with the wanted letter is right', () => {

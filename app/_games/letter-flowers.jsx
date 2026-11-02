@@ -1,9 +1,11 @@
 'use client';
 
 /**
- * Letter flowers: the garden shows one letter big, on a button that says
- * it again; the child taps the tile with that letter. Each right answer in this
- * run grows the flower one stage (`growth()` in `lib/games/letter-flowers.js`):
+ * Letter flowers: the voice asks for one letter and the child taps the tile
+ * with it. The question never shows the letter (it is a test of the sound): a
+ * big speaker button says it again, and Normal shows a picture of the example
+ * word. With the voice off, the button shows the letter, or nobody could play.
+ * Each right answer in this run grows the flower one stage (`growth()` in `lib/games/letter-flowers.js`):
  * the stem rises, the head grows, a petal is added and the petal mark moves on.
  * A wrong tile shakes and locks and the flower droops for a moment. The flower
  * is drawn here in the look's own tokens; its sizes are SVG geometry, set once
@@ -17,9 +19,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 import { t } from '../../lib/i18n/index.js';
-import { pick } from '../../lib/play/random.js';
 import { nameOf } from '../../lib/games/letters.js';
-import { GROUND_Y, growth, isRight, makeRound, splitWord } from '../../lib/games/letter-flowers.js';
+import { GROUND_Y, growth, isRight, makeRound } from '../../lib/games/letter-flowers.js';
+import { usePlay } from '../play-settings.jsx';
 
 import { Choice, ChoiceGrid, useLater } from './parts.jsx';
 
@@ -27,35 +29,31 @@ import { Choice, ChoiceGrid, useLater } from './parts.jsx';
 const NEXT_ROUND_MS = 400;
 /** How long the flower droops after a wrong tile, in milliseconds. */
 const DROOP_MS = 700;
-/** The shared praise lines; one leads the next round's question after a right answer. */
-const PRAISE = ['play.praise.1', 'play.praise.2', 'play.praise.3', 'play.praise.4'];
 
 /** @param {{ level: string, locale: string, play: any, over: boolean }} props */
 export default function LetterFlowers({ level, locale, play, over }) {
-  /** The round, its number in the run, and the praise said before its question (after a right answer). */
-  const [round, setRound] = useState(() => ({ ...makeRound(level, locale, null), n: 0, lead: /** @type {string | null} */ (null) }));
+  /** The round and its number in the run. */
+  const [round, setRound] = useState(() => ({ ...makeRound(level, locale, null), n: 0 }));
   /** Each tile's state this round: 'right' | 'wrong'. */
   const [marks, setMarks] = useState(/** @type {Record<string, 'right' | 'wrong'>} */ ({}));
   const [rights, setRights] = useState(0);
   const [mood, setMood] = useState(/** @type {'calm' | 'droop'} */ ('calm'));
   const later = useLater();
   const busy = useRef(false);
+  const { settings } = usePlay();
 
   const name = nameOf(round.letter, locale);
-  const example = round.example
-    ? t(round.example.inside ? 'letter.in' : 'letter.for', locale, { letter: name, word: round.example.word })
-    : null;
-  const ask = example
-    ? t('games.letter-flowers.askWord', locale, { name, example })
+  // The letter is said once; Normal adds its example word.
+  const ask = round.example
+    ? t('games.letter-flowers.askWord', locale, { name, word: round.example.word })
     : t('games.letter-flowers.ask', locale, { name });
-  const word = round.example ? splitWord(round.example.word, round.letter, locale) : null;
   const flower = growth(rights);
   /** One wrong tile, marked for the review driver the way the right one is (invisible to the child). */
   const decoy = round.tiles.find((tile) => tile.letter !== round.letter)?.id;
 
-  // Say the question when a round starts, after the praise for the last answer.
+  // Say the question when a round starts.
   useEffect(() => {
-    play.say(round.lead ? t('games.letter-flowers.then', locale, { praise: round.lead, ask }) : ask);
+    play.say(ask);
     // Only when the round changes; `ask` follows the round.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [round, play]);
@@ -64,11 +62,7 @@ export default function LetterFlowers({ level, locale, play, over }) {
     busy.current = false;
     setMarks({});
     setMood('calm');
-    setRound((current) => ({
-      ...makeRound(level, locale, current.letter),
-      n: current.n + 1,
-      lead: t(pick(PRAISE), locale),
-    }));
+    setRound((current) => ({ ...makeRound(level, locale, current.letter), n: current.n + 1 }));
   }, [level, locale]);
 
   function choose(tile) {
@@ -131,7 +125,7 @@ export default function LetterFlowers({ level, locale, play, over }) {
       </div>
 
       <div className="lf-ask">
-        <p className="lf-find">{t('games.letter-flowers.find', locale)}</p>
+        <p className="lf-find">{t(settings.voiceOn ? 'games.letter-flowers.find' : 'games.letter-flowers.findSeen', locale)}</p>
         <Button
           key={round.n}
           type="button"
@@ -140,24 +134,20 @@ export default function LetterFlowers({ level, locale, play, over }) {
           onClick={() => {
             if (!over) play.say(ask);
           }}
-          aria-label={t('games.letter-flowers.hear', locale, { letter: round.glyph })}
-          title={t('games.letter-flowers.hear', locale, { letter: round.glyph })}
+          aria-label={t('games.letter-flowers.hear', locale)}
+          title={t('games.letter-flowers.hear', locale)}
         >
-          <span className="lf-wanted-letter" aria-hidden="true">
-            {round.glyph}
-          </span>
-          <Volume2 className="lf-wanted-sound" aria-hidden="true" />
+          {settings.voiceOn ? (
+            <Volume2 className="lf-wanted-sound" aria-hidden="true" />
+          ) : (
+            <span className="lf-wanted-letter" aria-hidden="true">
+              {round.glyph}
+            </span>
+          )}
         </Button>
-        {round.example && word ? (
-          <p className="lf-example" key={`word-${round.n}`}>
-            <span className="lf-example-emoji" aria-hidden="true">
-              {round.example.emoji}
-            </span>
-            <span className="lf-example-word">
-              {word.before}
-              <span className="lf-example-letter">{word.match}</span>
-              {word.after}
-            </span>
+        {round.example ? (
+          <p className="lf-example" key={`word-${round.n}`} aria-hidden="true">
+            {round.example.emoji}
           </p>
         ) : null}
       </div>

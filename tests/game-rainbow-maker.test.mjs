@@ -90,11 +90,11 @@ test('the rainbow fills one arc per right answer and starts again after five', (
 });
 
 test('the game words are in both languages, with the colour filled in', () => {
-  for (const key of ['prompt', 'right', 'notThat', 'pot', 'rainbow']) {
+  for (const key of ['prompt', 'notThat', 'pot', 'rainbow']) {
     const full = `games.rainbow-maker.${key}`;
     assert.ok(en[full] && tr[full], full);
   }
-  for (const key of ['right', 'notThat', 'pot']) {
+  for (const key of ['notThat', 'pot']) {
     assert.match(en[`games.rainbow-maker.${key}`], /\{colour\}/u);
     assert.match(tr[`games.rainbow-maker.${key}`], /\{colour\}/u);
   }

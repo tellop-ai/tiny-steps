@@ -116,7 +116,6 @@ export default function NumberPond({ level, locale, play, over }) {
     if (isRight(round, index)) {
       busy.current = true;
       setCaught(index);
-      play.praise();
       play.right();
       later(() => {
         if (!play.isOver()) next(round.wanted);

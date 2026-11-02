@@ -830,12 +830,24 @@
 }
 
 .play-bar {
-  display: flex;
+  /* Two equal sides keep the game's name in the middle: back on the left, start again and grown-ups on the right. */
+  display: grid;
+  grid-template-columns: 1fr minmax(0, auto) 1fr;
   align-items: center;
   gap: 0.15rem;
   padding: 0.4rem 0.6rem;
   background: var(--card);
   border-bottom: 1px solid var(--border);
+}
+
+.play-bar-side {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.play-bar-end {
+  justify-content: flex-end;
 }
 
 .play-bar-title {

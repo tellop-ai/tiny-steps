@@ -67,7 +67,6 @@ export default function NumberHunt({ level, locale, play, over }) {
     if (isRight(hunt, number)) {
       busy.current = true;
       setFound(number);
-      play.say(t('games.number-hunt.found', locale, { n: String(number) }));
       play.right();
       later(() => {
         if (!play.isOver()) next(hunt);

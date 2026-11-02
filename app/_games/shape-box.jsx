@@ -44,9 +44,10 @@ export default function ShapeBox({ level, locale, play, over }) {
     if (fits(round, pieceId, hole)) {
       const next = { ...filled, [hole]: piece.mark };
       setFilled(next);
-      play.say(t('games.shape-box.fits', locale, { shape: word(hole) }));
-      play.right();
-      if (isFull(round, Object.keys(next))) {
+      const boxFull = isFull(round, Object.keys(next));
+      // Each shape is one step of the box: the run ends only once the box is full.
+      play.right({ step: !boxFull });
+      if (boxFull) {
         full.current = true;
         later(() => {
           if (play.isOver()) return;

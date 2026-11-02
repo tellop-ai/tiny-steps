@@ -1,6 +1,6 @@
 # Tiny steps
 
-Fifteen short learning games for children aged about two to six. Feed a hungry monster the colour it asks for, catch the fish with the right number, put shapes in their holes, trace letters and numbers, and grow a flower. Every right answer fills a star meter, and each game reads its question aloud in English or Turkish. A grown-ups window sets sound, language and difficulty; by default a wrong answer costs nothing. No AI, works offline. Stores only the grown-ups' settings and favourites. Game ideas from Mika's Adorable Playhouse by KungPowUnicorn (MIT), rebuilt for Tellop.
+Fifteen short learning games for children aged about two to six. Fill a teddy's basket with the colour it asks for, catch the fish with the right number, put shapes in their holes, trace letters and numbers, and grow a flower. Every right answer fills a star meter, and each game reads its question aloud in English or Turkish. A grown-ups window sets sound, language and difficulty; by default a wrong answer costs nothing. No AI, works offline. Stores only the grown-ups' settings and favourites. Game ideas from Mika's Adorable Playhouse by KungPowUnicorn (MIT), rebuilt for Tellop.
 
 This app was made with Tellop, the app builder by Pathnomic Labs, on Tellop's
 starting kit: Next.js and React, with Node's own SQLite for what the app keeps.

@@ -52,7 +52,6 @@ export default function LetterTracing({ level, locale, play, over }) {
 
   const traced = useCallback(() => {
     play.right();
-    play.praise();
     later(() => {
       if (!play.isOver()) next();
     }, NEXT_MS);

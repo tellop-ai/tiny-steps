@@ -61,7 +61,6 @@ export default function LetterMuncher({ level, locale, play, over }) {
       busy.current = true;
       setRefused(null);
       setEaten(tileId);
-      play.say(t('games.letter-muncher.yum', locale, { name: wantedName }));
       play.right();
       later(() => {
         if (!play.isOver()) next();

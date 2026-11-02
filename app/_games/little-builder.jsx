@@ -109,11 +109,11 @@ export default function LittleBuilder({ level, locale, play, over }) {
     if (isRight(asked, piece)) {
       const filled = placed + 1;
       setMarks({});
-      play.right();
+      // Each piece is one step of the picture: the run ends only once the picture is built.
+      play.right({ step: filled < picture.slots.length });
       if (filled >= picture.slots.length) {
         busy.current = true;
         setRound({ picture, placed: filled, tray: [] });
-        play.say(t('games.little-builder.built', locale, { picture: pictureName }));
         later(next, NEXT_PICTURE_MS);
       } else {
         setRound({ picture, placed: filled, tray: makeTray(level, picture.slots[filled]) });

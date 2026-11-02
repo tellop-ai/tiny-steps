@@ -111,13 +111,12 @@ test('the voice says a small letter\'s name, never the bare glyph', () => {
 });
 
 test('the game\'s words are in both languages and fill their letters', () => {
-  for (const key of ['ask', 'yum', 'notThat', 'monster']) {
+  for (const key of ['ask', 'notThat', 'monster']) {
     const full = `games.letter-muncher.${key}`;
     assert.ok(en[full] && tr[full], full);
   }
   for (const words of [en, tr]) {
     assert.match(words['games.letter-muncher.ask'], /\{letter\}/u);
-    assert.match(words['games.letter-muncher.yum'], /\{name\}/u);
     assert.match(words['games.letter-muncher.notThat'], /\{name\}.*\{wanted\}/u);
   }
 });

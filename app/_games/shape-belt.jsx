@@ -105,7 +105,6 @@ export default function ShapeBelt({ level, locale, play, over, paused = false })
     remove([pieceId]);
     if (feeds(item.kind, mouth)) {
       setChomping(mouth);
-      play.praise();
       play.right();
       rightFeeds.current += 1;
       if (isNewGroup(rightFeeds.current)) {
